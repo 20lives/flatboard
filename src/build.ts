@@ -1,5 +1,5 @@
-import { writeFileSync } from "fs";
-import { union } from "scad-js";
+import { writeFileSync } from 'node:fs';
+import { union } from 'scad-js';
 
 import { getLayoutForBuildSide, calculatePlateDimensions } from './layout.js';
 import { generateKeyboardPlate } from './top.js';
@@ -11,7 +11,7 @@ import { createConfig, KEYBOARD_PROFILES, DEFAULT_PROFILE } from './config.js';
  */
 function buildWithConfig(profileName?: string) {
   const CONFIG = createConfig(profileName);
-  
+
   const allKeyPlacements = getLayoutForBuildSide(CONFIG);
   const { plateWidth, plateHeight, plateOffset } = calculatePlateDimensions(allKeyPlacements, CONFIG);
 
@@ -36,7 +36,11 @@ export function buildBottomCase(profileName?: string) {
 
 export function buildCompleteEnclosure(profileName?: string) {
   const { CONFIG } = buildWithConfig(profileName);
-  const topPlateGeometry = buildTopPlate(profileName).translate([0, 0, CONFIG.enclosure.walls.top.height + CONFIG.enclosure.walls.bottom.thickness ]);
+  const topPlateGeometry = buildTopPlate(profileName).translate([
+    0,
+    0,
+    CONFIG.enclosure.walls.top.height + CONFIG.enclosure.walls.bottom.thickness,
+  ]);
   const bottomCaseGeometry = buildBottomCase(profileName);
   return union(topPlateGeometry, bottomCaseGeometry);
 }
@@ -44,11 +48,11 @@ export function buildCompleteEnclosure(profileName?: string) {
 export function build(generateStlFiles = false, profileName?: string) {
   const { CONFIG, allKeyPlacements, plateWidth, plateHeight } = buildWithConfig(profileName);
   const activeProfile = profileName || process.env.KEYBOARD_PROFILE || DEFAULT_PROFILE;
-  
+
   const outputFiles = [
-    { fileName: "top", modelGeometry: buildTopPlate(profileName) },
-    { fileName: "bottom", modelGeometry: buildBottomCase(profileName) },
-    { fileName: "complete", modelGeometry: buildCompleteEnclosure(profileName) }
+    { fileName: 'top', modelGeometry: buildTopPlate(profileName) },
+    { fileName: 'bottom', modelGeometry: buildBottomCase(profileName) },
+    { fileName: 'complete', modelGeometry: buildCompleteEnclosure(profileName) },
   ];
 
   outputFiles.forEach(async ({ fileName, modelGeometry }) => {
@@ -69,28 +73,28 @@ export function build(generateStlFiles = false, profileName?: string) {
  */
 export function listProfiles() {
   console.log('Available keyboard profiles:');
-  Object.entries(KEYBOARD_PROFILES).forEach(([name, profile]) => {
+  Object.entries(KEYBOARD_PROFILES).forEach(([name, _profile]) => {
     // Get the final config to access merged rowLayout
     const finalConfig = createConfig(name);
     const rowLayout = finalConfig.layout.matrix.rowLayout;
     const thumbKeys = finalConfig.thumb.cluster.keys;
     const buildSide = finalConfig.layout.build.side;
     const switchType = finalConfig.switch.type;
-    
+
     if (!rowLayout || rowLayout.length === 0) {
       console.log(`  • ${name}: ERROR - No rowLayout defined`);
       return;
     }
-    
+
     // Sum all row lengths for total matrix keys
     const matrixKeys = rowLayout.reduce((sum, row) => sum + row.length, 0);
-    
+
     // Create layout description showing start:length patterns
-    const layoutPattern = rowLayout.map(row => `${row.start}:${row.length}`).join(',');
+    const layoutPattern = rowLayout.map((row) => `${row.start}:${row.length}`).join(',');
     const layoutDescription = `{${layoutPattern}}`;
-    
+
     const totalKeys = (matrixKeys + thumbKeys) * (buildSide !== 'both' ? 1 : 2);
-    
+
     const sideInfo = buildSide === 'both' ? '' : ` (${buildSide} side)`;
     const thumbInfo = thumbKeys > 0 ? ` + ${thumbKeys} thumbs` : '';
     const switchInfo = ` [${switchType}]`;

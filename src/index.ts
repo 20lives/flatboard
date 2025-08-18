@@ -12,7 +12,7 @@ function handleBuild(profileName?: string) {
     console.error(`Profile '${profileName}' not found. Use 'bun run list' to see available profiles.`);
     process.exit(1);
   }
-  
+
   build(false, profileName);
 }
 
@@ -20,11 +20,11 @@ switch (command) {
   case 'list':
     listProfiles();
     break;
-    
+
   case 'build':
     handleBuild(commandArgs[0]);
     break;
-    
+
   case 'help':
     console.log(`flatboard - Parameterized Keyboard Generator
 
@@ -45,11 +45,11 @@ Examples:
 Output files are always: top.scad, bottom.scad, complete.scad
 `);
     break;
-    
+
   case undefined:
     handleBuild(); // Build with default profile when no command specified
     break;
-    
+
   default:
     console.error(`Unknown command: ${command}`);
     console.log('Use "bun src/index.ts help" for usage information');

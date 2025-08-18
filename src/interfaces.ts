@@ -8,9 +8,9 @@ export type KeyPlacement = { pos: Point2D; rot: number };
 
 // Row layout configuration
 export interface RowLayoutItem {
-  start: number;    // Starting grid position for this row
-  length: number;   // Number of keys in this row
-  offset?: number;  // Column stagger offset (optional, defaults to 0)
+  start: number; // Starting grid position for this row
+  length: number; // Number of keys in this row
+  offset?: number; // Column stagger offset (optional, defaults to 0)
 }
 
 // Matrix layout configuration

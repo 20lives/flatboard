@@ -9,9 +9,16 @@
     "clean": "rm -rf ./dist/*.scad ./dist/*.stl",
     "list": "bun run ./src/index.ts list",
     "profiles": "bun run ./src/index.ts list",
-    "help": "bun run ./src/index.ts help"
+    "help": "bun run ./src/index.ts help",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write ."
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.0",
     "@types/bun": "latest"
   },
   "peerDependencies": {

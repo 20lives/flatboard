@@ -29,18 +29,18 @@ export class ProfileManager {
    * Create a custom profile by merging existing profile with overrides
    */
   static createCustomProfile(
-    baseName: string, 
-    overrides: ParameterProfile, 
-    customName?: string
+    baseName: string,
+    overrides: ParameterProfile,
+    customName?: string,
   ): { name: string; profile: ParameterProfile } {
-    const baseProfile = this.getProfile(baseName);
+    const baseProfile = ProfileManager.getProfile(baseName);
     if (!baseProfile) {
       throw new Error(`Base profile '${baseName}' not found`);
     }
 
     const customProfile = { ...baseProfile, ...overrides };
     const name = customName || `${baseName}-custom`;
-    
+
     return { name, profile: customProfile };
   }
 
@@ -102,6 +102,4 @@ export class ProfileManager {
 
     return { valid: errors.length === 0, errors };
   }
-
 }
-

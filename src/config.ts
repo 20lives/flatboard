@@ -5,10 +5,9 @@
 
 import { BASE_PARAMETERS } from './base-params.js';
 import { SWITCH_SPECS } from './switches.js';
-import { CONNECTOR_SPECS } from './connector-specs.js';
 import { KEYBOARD_PROFILES, DEFAULT_PROFILE } from './keyboard-profiles.js';
 import { deepMerge } from './utils.js';
-import { type KeyboardConfig } from './interfaces.js';
+import type { KeyboardConfig } from './interfaces.js';
 
 // Re-export everything for backward compatibility
 export * from './interfaces.js';
@@ -26,19 +25,19 @@ export type ParameterProfile = Partial<typeof BASE_PARAMETERS>;
 function createFinalConfig(profileName?: keyof typeof KEYBOARD_PROFILES): KeyboardConfig {
   const actualProfile = profileName || DEFAULT_PROFILE;
   const profile = KEYBOARD_PROFILES[actualProfile];
-  
+
   if (!profile) {
     console.warn(`Profile '${actualProfile}' not found. Using base configuration.`);
     return createFinalConfig(DEFAULT_PROFILE);
   }
-  
+
   // Deep merge base parameters with profile overrides
   const mergedParams = deepMerge(BASE_PARAMETERS, profile);
-  
+
   // Get switch specifications and apply them
   const switchSpec = SWITCH_SPECS[mergedParams.switch.type as keyof typeof SWITCH_SPECS];
   const finalParams = deepMerge(mergedParams, switchSpec);
-  
+
   // Add computed values to the final configuration
   const finalConfig: KeyboardConfig = {
     layout: finalParams.layout,
@@ -46,7 +45,7 @@ function createFinalConfig(profileName?: keyof typeof KEYBOARD_PROFILES): Keyboa
     thumb: finalParams.thumb,
     output: finalParams.output,
     connectors: finalParams.connectors,
-    
+
     // Enhanced enclosure section with computed skin thickness
     enclosure: {
       ...finalParams.enclosure,
@@ -55,23 +54,26 @@ function createFinalConfig(profileName?: keyof typeof KEYBOARD_PROFILES): Keyboa
         thickness: finalParams.switch.plate.totalThickness - finalParams.enclosure.skin.reductionHeight,
       },
     },
-    
+
     // Enhanced mounting section with computed values
     mounting: {
       ...finalParams.mounting,
       corner: {
         ...finalParams.mounting.corner,
         inset: finalParams.enclosure.walls.thickness / finalParams.mounting.corner.insetDivisor,
-        offset: finalParams.mounting.corner.radius / 5 * finalParams.mounting.corner.offsetFactor,
+        offset: (finalParams.mounting.corner.radius / 5) * finalParams.mounting.corner.offsetFactor,
         cutoutWidth: finalParams.mounting.corner.radius * 2,
         cutoutOffset: (finalParams.enclosure.walls.thickness + finalParams.mounting.corner.radius) / 2,
       },
       insert: {
         ...finalParams.mounting.insert,
-        centerZ: finalParams.mounting.insert.height / 2 - finalParams.enclosure.walls.top.height + finalParams.enclosure.walls.bottom.height,
+        centerZ:
+          finalParams.mounting.insert.height / 2 -
+          finalParams.enclosure.walls.top.height +
+          finalParams.enclosure.walls.bottom.height,
       },
     },
-    
+
     // Enhanced tolerances section with computed values
     tolerances: {
       ...finalParams.tolerances,
@@ -79,7 +81,7 @@ function createFinalConfig(profileName?: keyof typeof KEYBOARD_PROFILES): Keyboa
       extrusionHeight: finalParams.tolerances.extrusion,
       doubleGeneralHeight: finalParams.tolerances.general * 2,
     },
-    
+
     // Additional computed dimensions
     computed: {
       manufacturingScaleMargin: 1.2,
@@ -90,7 +92,7 @@ function createFinalConfig(profileName?: keyof typeof KEYBOARD_PROFILES): Keyboa
       bottomWallCenterZ: finalParams.enclosure.walls.bottom.height / 2,
     },
   };
-  
+
   return finalConfig;
 }
 

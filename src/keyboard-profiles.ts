@@ -2,7 +2,7 @@
  * Predefined keyboard profiles and profile management
  */
 
-import { type ParameterProfile } from './interfaces.js';
+import type { ParameterProfile } from './interfaces.js';
 
 // Predefined keyboard profiles
 export const KEYBOARD_PROFILES = {
@@ -14,7 +14,7 @@ export const KEYBOARD_PROFILES = {
           { start: 0, length: 3, offset: 1 },
           { start: 0, length: 3, offset: 0 },
           { start: 0, length: 3, offset: 3 },
-          { start: 0, length: 3, offset: 4 }
+          { start: 0, length: 3, offset: 4 },
         ],
       },
       spacing: {
@@ -42,7 +42,7 @@ export const KEYBOARD_PROFILES = {
           { start: 0, length: 3, offset: 1 },
           { start: 0, length: 3, offset: 0 },
           { start: 0, length: 3, offset: 3 },
-          { start: 0, length: 3, offset: 4 }
+          { start: 0, length: 3, offset: 4 },
         ],
       },
       spacing: {
@@ -78,7 +78,7 @@ export const KEYBOARD_PROFILES = {
           { start: 0, length: 4, offset: 0 },
           { start: 0, length: 4, offset: 0 },
           { start: 0, length: 4, offset: 0 },
-          { start: 0, length: 4, offset: 0 }
+          { start: 0, length: 4, offset: 0 },
         ],
       },
       spacing: {
@@ -109,7 +109,7 @@ export const KEYBOARD_PROFILES = {
           { start: 0, length: 3, offset: 1 },
           { start: 0, length: 3, offset: 0 },
           { start: 0, length: 3, offset: 3 },
-          { start: 0, length: 3, offset: 4 }
+          { start: 0, length: 3, offset: 4 },
         ],
       },
       spacing: {
@@ -152,9 +152,7 @@ export const KEYBOARD_PROFILES = {
   'test-single-choc': {
     layout: {
       matrix: {
-        rowLayout: [
-          { start: 0, length: 1, offset: 0 }
-        ],
+        rowLayout: [{ start: 0, length: 1, offset: 0 }],
       },
       spacing: {
         edgeMargin: 10.0,
@@ -172,9 +170,7 @@ export const KEYBOARD_PROFILES = {
   'test-single-mx': {
     layout: {
       matrix: {
-        rowLayout: [
-          { start: 0, length: 1, offset: 0 }
-        ],
+        rowLayout: [{ start: 0, length: 1, offset: 0 }],
       },
       spacing: {
         edgeMargin: 15.0,
@@ -205,7 +201,7 @@ export const KEYBOARD_PROFILES = {
         rowLayout: [
           { start: 0, length: 3, offset: 0 },
           { start: 0, length: 3, offset: 0 },
-          { start: 0, length: 3, offset: 0 }
+          { start: 0, length: 3, offset: 0 },
         ],
       },
       spacing: {
@@ -264,7 +260,7 @@ export const KEYBOARD_PROFILES = {
         rowLayout: [
           { start: 0, length: 4, offset: 2 },
           { start: 0, length: 5, offset: 0 },
-          { start: 0, length: 5, offset: 1 }
+          { start: 0, length: 5, offset: 1 },
         ],
       },
       spacing: {
@@ -293,9 +289,9 @@ export const KEYBOARD_PROFILES = {
     layout: {
       matrix: {
         rowLayout: [
-          { start: -1, length: 3, offset: 2 },  // Row 0: keys at grid positions -1,0,1 with offset 2
-          { start: 1, length: 4, offset: 0 },   // Row 1: keys at grid positions 1,2,3,4 with offset 0
-          { start: 0, length: 3, offset: 1 }    // Row 2: keys at grid positions 0,1,2 with offset 1
+          { start: -1, length: 3, offset: 2 }, // Row 0: keys at grid positions -1,0,1 with offset 2
+          { start: 1, length: 4, offset: 0 }, // Row 1: keys at grid positions 1,2,3,4 with offset 0
+          { start: 0, length: 3, offset: 1 }, // Row 2: keys at grid positions 0,1,2 with offset 1
         ],
       },
       spacing: {
