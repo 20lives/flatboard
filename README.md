@@ -1,61 +1,74 @@
 # flatboard
 
-**A Parameterized ortholinear split lowprofile custom 3d printed keyboard generator**
+## 🎯 **Build Your Dream Keyboard with Just JavaScript!**
 
-Built with TypeScript and SCAD-JS, flatboard is a **configurable, parameterized, modular** system for generating custom ortholinear split keyboards with professional mounting systems and multi-switch support.
+**No 3D modeling knowledge required** - Design and generate professional split keyboards using simple JavaScript configuration. Perfect your layout, add connectors, and get ready-to-print files in minutes!
 
-## 🚀 Features
+✨ **From idea to 3D-printable keyboard in 3 steps:**
+1. **Configure** - Adjust layout, switches, and connectors with simple JS objects
+2. **Generate** - Run one command to create professional SCAD files  
+3. **Print** - Get manufacturing-ready files for your custom keyboard
 
-- **🔧 Fully Configurable** - Every dimension, angle, and parameter can be customized
-- **📐 Parametric Design** - Mathematical precision with constraint-based geometry
-- **🧩 Modular Architecture** - Clean separation of concerns across specialized modules
-- **⌨️ Split Keyboard Support** - Ergonomic left/right hand layouts with automatic mirroring
-- **🔌 Multiple Switch Support** - Kailh Choc low-profile and Cherry MX compatibility
-- **🔩 Professional Mounting** - Heat insert + screw assembly system (M3 threaded)
-- **📏 Ortholinear Layout** - Grid-based key arrangements for optimal typing
-- **📊 Custom Row Stagger** - Configurable column offsets for ergonomic comfort
-- **👍 Custom Thumb Cluster** - Individual key positioning and rotation
-- **📦 Complete Output** - Generate both SCAD and STL files
-- **💻 Easy Customization** - Simple JavaScript/TypeScript configuration
+---
 
-## 🛠️ Technology Stack
+**flatboard** is a powerful **TypeScript-based** keyboard generator that makes custom split keyboards accessible to everyone. Whether you're a developer, maker, or keyboard enthusiast, create your perfect typing experience without touching CAD software!
 
-- **TypeScript** - Type-safe parametric design
-- **SCAD-JS v0.6.6** - TypeScript-to-OpenSCAD transpiler
+## 🚀 **Why Choose flatboard?**
+
+### 🎮 **For Beginners**
+- **🚀 Zero CAD Experience Needed** - Configure with familiar JavaScript syntax
+- **📝 Copy & Paste Ready** - Start with working examples, modify to taste
+- **⚡ Instant Results** - See your changes in generated 3D files immediately
+- **🎯 Guided Configuration** - Clear parameter names and helpful comments
+
+### 🔥 **For Power Users**  
+- **🔧 Infinite Customization** - Every dimension, angle, and curve is configurable
+- **🔌 Pro Connector System** - USB-C, TRRS, custom connectors anywhere you want
+- **⌨️ Smart Split Layouts** - Automatic left/right mirroring with perfect geometry
+- **🔩 Professional Assembly** - Heat insert mounting system for durable builds
+
+### 💎 **What You Get**
+- **📐 Mathematical Precision** - Perfect geometry, every time
+- **🎯 Manufacturing Ready** - Optimized for 3D printing with no supports needed
+- **⚡ Multiple Switch Support** - Choc low-profile or Cherry MX compatibility  
+- **🛠️ Complete Assembly** - Top plate, bottom case, and mounting hardware
+
+## 🛠️ Dependencies
+
+- **SCAD-JS** - TypeScript-to-OpenSCAD transpiler
 - **Bun** - Fast runtime and build system
-- **OpenSCAD** - Final 3D model generation
 
-## 🚀 Quick Start
+## 🚀 **Get Started in 2 Minutes!**
 
-### Installation
-
+### **Step 1: Setup** ⚡
 ```bash
-# Clone the repository
-git clone <repository-url>
+git clone git@github.com:20lives/flatboard.git
 cd flatboard
-
-# Install dependencies
 bun install
 ```
 
-### Basic Usage
-
+### **Step 2: Your First Keyboard** 🎯
 ```bash
-# Build with default profile (36-key split)
+# Generate your first keyboard (default 36-key split)
 bun run build
 
-# List available profiles
+# 🎉 Done! Check the dist/ folder for your 3D files
+```
+
+### **Step 3: Explore & Customize** 🔥
+```bash
+# See all the cool layouts we've made for you
 bun run list
 
-# Build specific profile
+# Try different switches and layouts
 bun run build -- ortho-36-mx
+bun run build -- ortho-4x10
 
-# Clean generated files
+# Clean up when experimenting
 bun run clean
-
-# Development mode (watch)
-bun run dev
 ```
+
+> **💡 Pro tip:** Start with a built-in profile, then modify it step by step. You'll be designing custom keyboards in minutes!
 
 ### Available Profiles
 
@@ -63,100 +76,84 @@ bun run dev
 bun run list
 ```
 
-**Built-in Profiles:**
-- `ortho-36` - 36-key split (3×5 + 3 thumb) [Choc]
-- `ortho-36-mx` - 36-key split optimized for Cherry MX
-- `test-single-choc` - Single key test layout (Choc)
-- `test-single-mx` - Single key test layout (MX)
-- `ortho-4x10` - 43-key single-side layout
+**🎯 Ready-to-Use Profiles:**
+- `ortho-36` - 🔥 **Most Popular** - 36-key split with Choc switches
+- `ortho-36-mx` - 💪 **Cherry MX** - Same layout, bigger switches
+- `ortho-4x10` - 📱 **Compact** - 40-key single-side layout
 
-## 📐 Configuration System
+**🧪 Experimental Profiles:**
+- `test-single-choc` - Single key for testing
+- `test-single-mx` - Single key with MX switch
+- `test-multi-connectors` - **Demo:** USB-C + TRRS connectors
 
-### Profile-Based Design
+> **🚀 New to split keyboards?** Start with `ortho-36` - it's the sweet spot of ergonomics and usability!
 
-The system uses a hierarchical configuration with inheritance:
+## 🎨 **Create Your Perfect Keyboard** 
 
-```
-BASE_PARAMETERS → PROFILE_OVERRIDES → SWITCH_SPECS → Final CONFIG
-```
+### **It's Just JavaScript!** ✨
 
-### Creating Custom Profiles
-
-Add new profiles to `src/config.ts`:
+Want a wider split? More thumb keys? USB-C on the side? **No problem!** Just copy a profile and modify the values you want to change. Here's how easy it is:
 
 ```typescript
-'my-custom': {
-  cols: 4,                    // 4 columns instead of 3
-  rows: 6,                    // 6 rows
-  centerGap: 30.0,            // Wider split
-  baseRotationDegrees: -15.0, // Different tilt
-  switchType: 'mx',           // Cherry MX switches
-  thumbKeys: 2,               // 2 thumb keys per hand
-  buildSide: 'both',          // Build both sides
+// Add this to src/config.ts - that's it!
+'my-dream-keyboard': {
+  layout: {
+    matrix: {
+      cols: 4,                // 🔥 Want more keys? Just increase!
+      rows: 6,                // Bigger hands? More rows!
+    },
+    spacing: {
+      centerGap: 40.0,        // 🔄 Wider split for comfort
+    },
+    rotation: {
+      baseDegrees: -15.0,     // 📐 Tilt it how you like
+    },
+  },
+  switch: {
+    type: 'mx',               // 🔘 Cherry MX? Choc? Your choice!
+  },
+  thumb: {
+    cluster: {
+      keys: 4,                // 👍 More thumb keys = more shortcuts
+    },
+  },
+  connectors: [
+    {
+      type: 'usbC',           // 🔌 USB-C on the side
+      face: 'left',           // 📍 Put it anywhere!
+      position: 0.7,          // 🎯 Exact positioning
+    },
+    {
+      type: 'trrs',           // 🎧 Want audio? Add TRRS!
+      face: 'right',
+      position: 0.3,
+    },
+  ],
 },
 ```
 
-### Key Parameters
+**🎉 That's it!** Run `bun run build -- my-dream-keyboard` and you've got a custom keyboard designed exactly how you want it!
 
-**Layout:**
-- `cols`, `rows` - Matrix dimensions per hand
-- `centerGap` - Distance between split halves
-- `baseRowOffsets` - Column stagger pattern
-- `pitch` - Key spacing
+### **What You Get** 📦
 
-**Switch Support:**
-- `switchType: 'choc'` - Kailh Choc low-profile (13.8mm cutout, 1.6mm plate)
-- `switchType: 'mx'` - Cherry MX standard (13.9mm cutout, 5.0mm plate)
+**3 Professional Files Ready for 3D Printing:**
+- `dist/top.scad` - 🔝 **Top plate** with switch holes and mount points and electronics space
+- `dist/bottom.scad` - 📦 **Bottom case** snap-fit bottom with screw sockets
+- `dist/complete.scad` - 👀 **Preview** of assembled keyboard
 
-**Thumb Cluster:**
-- `thumbKeys` - Number of thumb keys per hand
-- `thumbXOffset`, `thumbYOffset` - Cluster position
-- `thumbClusterRotation` - Overall cluster angle
-- `thumbPerKeyRotation` - Individual key rotations
+> **🎯 Import into your slicer and print!** No supports needed, optimized for FDM printing.
 
-**Physical Design:**
-- `totalThickness` - Overall plate thickness
-- `wallThickness` - Case wall thickness
-- `topWallHeight`, `bottomWallHeight` - Case height
+## 🔩 **From Print to Perfect Keyboard**
 
-## 🏗️ Architecture
+### **Assembly is a Breeze** ⚡
 
-### Modular Design
+1. **🖨️ Print** - Just drop the files into your slicer (no supports!)
+2. **🔥 Heat Inserts** - Press M3 threaded inserts into corner mounts
+3. **⌨️ Install** - Add your switches, wiring, and controller
+4. **🔩 Assemble** - Four screws hold everything together perfectly
+5. **🎉 Type** - Your custom keyboard is ready!
 
-```
-src/
-├── config.ts          # Configuration system & profiles
-├── layout.ts          # Keyboard layout & mathematics
-├── switch-sockets.ts  # Switch cutout generation
-├── mounting.ts        # Heat insert & screw hardware
-├── walls.ts           # Case wall geometry
-├── top.ts            # Top plate assembly
-├── bottom.ts         # Bottom case assembly
-└── build.ts          # Build orchestration
-```
-
-### Generated Output
-
-**Files Created:**
-- `dist/top.scad` - Top plate with heat insert mounts
-- `dist/bottom.scad` - Bottom case with screw sockets
-- `dist/complete.scad` - Complete assembly view
-
-## 🔩 Hardware & Assembly
-
-### Professional Mounting System
-
-- **Heat Insert Mounts** - M3 threaded inserts in top plate corners
-- **Screw Sockets** - M3 clearance holes in bottom case posts
-- **Split Walls** - 6mm + 6mm interlocking wall system (12mm total height)
-
-### Assembly Process
-
-1. **3D Print** - Print top and bottom parts separately
-2. **Heat Inserts** - Press M3 heat inserts into top plate corner mounts
-3. **Electronics** - Install switches, wiring, and controller in bottom case
-4. **Assembly** - Align and secure with M3 screws
-5. **Finishing** - Add rubber feet and connect cables
+**Professional mounting system** with heat inserts means your keyboard will last for years of heavy typing.
 
 ## 🎯 Design Philosophy
 
@@ -167,45 +164,47 @@ src/
 - **Manufacturing ready** - Designed for FDM 3D printing constraints
 - **Modular architecture** - Clean separation enables easy modification
 
-## 📊 Technical Specifications
-
-**Current Default (ortho-36):**
-- Layout: 36 keys total (15 per hand + 3 thumb keys each)
-- Dimensions: ~252mm × 118mm plate
-- Thickness: 8mm total (1.6mm skin + 6.4mm structure)
-- Mounting: 4 corner M3 heat inserts
-- Switch Support: Kailh Choc low-profile
-- Ergonomics: -77° base rotation, custom thumb cluster
-
 ## 🔍 Advanced Features
+
+### Generic Connector System
+- **Multiple connector types** - USB-C (pill shape), TRRS (circle), extensible
+- **Configurable placement** - Any face (top/bottom/left/right) with precise positioning
+- **Smart positioning** - Automatic clearance from plate thickness and wall boundaries
+- **Type-safe configuration** - Predefined connector specifications
 
 ### Mathematical Layout Engine
 - **Rotation-aware calculations** - Handles arbitrary key rotations
 - **Constraint-based positioning** - All coordinates calculated, not hardcoded
 - **Split keyboard logic** - Automatic left/right mirroring with rotation inversion
 
-### Switch Socket System
-- **Switch hole cutouts** - Precise mounting holes
-- **Thin zone clearance** - Socket clearance zones
-- **Frame boundary** - Structural reinforcement around switches
+## 🚀 **Join the Community!**
 
-### Computed Values
-- **Eliminated duplication** - Recurring calculations computed once
-- **Performance optimized** - Pre-calculated dimensions and tolerances
-- **Maintainable** - Single source of truth for derived values
+**Love what you've built?** We'd love to see it! 
 
-## 🤝 Contributing
+- 📸 **Share your builds** - Post photos of your custom keyboards
+- 💡 **Suggest features** - What connector types should we add next?
+- 🐛 **Report issues** - Help us make flatboard even better
+- 🔧 **Contribute code** - Add new switch types, connector shapes, or layouts
 
-This project demonstrates production-ready parametric design principles:
-- Type-safe configuration
-- Modular architecture
-- Mathematical precision
-- Manufacturing constraints
-
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
+**This is more than just code** - it's a community of makers pushing the boundaries of custom keyboards. Your ideas and builds inspire everyone!
 
 ---
 
-**Built with SCAD-JS** - TypeScript → OpenSCAD → STL Pipeline
+## 🎯 **Ready to Build Your Dream Keyboard?**
+
+```bash
+git clone git@github.com:20lives/flatboard.git
+cd flatboard
+bun install
+bun run build
+```
+
+**That's it!** In 2 minutes you'll have professional 3D files for a custom split keyboard. No CAD experience required, just the power of JavaScript configuration.
+
+**Start typing on YOUR perfect keyboard today!** 🚀⌨️✨
+
+---
+
+## 📝 License
+
+MIT License - Build anything you want! 🎉
