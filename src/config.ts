@@ -49,6 +49,9 @@ const BASE_PARAMETERS = {
   },
   
   enclosure: {
+    plate: {
+      thickness: 1.5,        // Top plate thickness (separate from switch plate)
+    },
     walls: {
       thickness: 1.5,         // Case wall thickness
       top: {
@@ -94,9 +97,41 @@ const BASE_PARAMETERS = {
     extrusion: 0.2,    // Additional height for boolean operations
   },
   
+  connectors: [
+    // Default USB-C connector
+    {
+      type: 'usbC',
+      enabled: true,
+      face: 'top',        // 'top', 'bottom', 'left', 'right'
+      position: 0.5,      // 0.0 to 1.0 along the face (0.5 = center)
+      clearance: 0.2,     // Additional clearance around socket
+    },
+  ],
+  
   output: {
     openscad: {
       resolution: 64,
+    },
+  },
+} as const;
+
+// Connector type specifications
+export const CONNECTOR_SPECS = {
+  usbC: {
+    description: 'USB-C Female Socket',
+    geometry: {
+      type: 'pill',           // Two circles with hull
+      circleRadius: 1.55,     // Radius of each circle
+      centerDistance: 5.8,    // Distance between circle centers
+      depth: 7.0,             // Default cutout depth
+    },
+  },
+  trrs: {
+    description: 'TRRS 3.5mm Audio Jack',
+    geometry: {
+      type: 'circle',         // Single circle
+      radius: 2.45,           // 2.45mm radius for TRRS jack
+      depth: 8.0,             // Default cutout depth
     },
   },
 } as const;
@@ -129,7 +164,7 @@ export const SWITCH_SPECS = {
         thinZone: 15.9,    // Slightly larger clearance for MX
       },
       plate: {
-        thickness: 5.0,     // Standard MX plate thickness
+        thickness: 4.1,     // Standard MX plate thickness
         totalThickness: 7.1,     // Higher profile for MX switches
       },
     },
@@ -223,12 +258,24 @@ export const KEYBOARD_PROFILES = {
       },
     },
     enclosure: {
+      plate: {
+        thickness: 1.6,
+      },
       walls: {
         top: {
           height: 12,
         },
       },
     },
+    connectors: [
+      {
+        type: 'usbC',
+        enabled: true,
+        face: 'left',
+        position: 0.25,
+        clearance: 0.2,
+      },
+    ],
   },
   'test-single-choc': {
     layout: {
@@ -278,7 +325,62 @@ export const KEYBOARD_PROFILES = {
       },
     },
   },
-  
+  'test-multi-connectors': {
+    layout: {
+      matrix: {
+        cols: 3,
+        rows: 3,
+      },
+      spacing: {
+        edgeMargin: 15.0,
+      },
+      build: {
+        side: 'right',
+      },
+    },
+    thumb: {
+      cluster: {
+        keys: 0,
+      },
+    },
+    connectors: [
+      {
+        type: 'usbC',
+        enabled: true,
+        face: 'top',
+        position: 0.5,
+        clearance: 0.2,
+      },
+      {
+        type: 'usbC',
+        enabled: true,
+        face: 'bottom',
+        position: 0.5,
+        clearance: 0.2,
+      },
+      {
+        type: 'usbC',
+        enabled: true,
+        face: 'left',
+        position: 0.5,
+        clearance: 0.2,
+      },
+      {
+        type: 'usbC',
+        enabled: true,
+        face: 'right',
+        position: 0.5,
+        clearance: 0.2,
+      },
+      {
+        type: 'trrs',
+        enabled: true,
+        face: 'left',
+        position: 0.7,
+        clearance: 0.1,
+      },
+    ],
+  },
 } as const satisfies Record<string, ParameterProfile>;
 
 // Default profile - configured here as single source of truth
@@ -344,6 +446,9 @@ function createFinalConfig(profileName?: keyof typeof KEYBOARD_PROFILES) {
       extrusionHeight: finalParams.tolerances.extrusion,
       doubleGeneralHeight: finalParams.tolerances.general * 2,
     },
+    
+    // Enhanced connectors section - pass through as array
+    connectors: finalParams.connectors,
     
     // Additional computed dimensions
     computed: {

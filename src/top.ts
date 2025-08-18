@@ -3,6 +3,7 @@ import { type KeyPlacement, type Point2D } from './config.js';
 import { createTopWalls } from './walls.js';
 import { createCornerHeatInsertMounts } from './mounting.js';
 import { createAllSwitchCutouts, createFrameOuterBoundCutouts } from './switch-sockets.js';
+import { createAllConnectors } from './connector.js';
 
 function createBasePlateGeometry(plateWidth: number, plateHeight: number, topPlateThickness: number) {
   return cube([plateWidth, plateHeight, topPlateThickness])
@@ -10,7 +11,7 @@ function createBasePlateGeometry(plateWidth: number, plateHeight: number, topPla
 }
 
 export function generateKeyboardPlate(allKeyPlacements: KeyPlacement[], plateWidth: number, plateHeight: number, plateOffset: Point2D, config: any) {
-  const basePlateGeometry = createBasePlateGeometry(plateWidth, plateHeight, config.switch.plate.thickness);
+  const basePlateGeometry = createBasePlateGeometry(plateWidth, plateHeight, config.enclosure.plate.thickness);
 
   // Create all switch-related cutouts using the extracted module
   const { switchHoleCutouts, thinZoneCutouts, allCutouts } = createAllSwitchCutouts(
@@ -32,6 +33,18 @@ export function generateKeyboardPlate(allKeyPlacements: KeyPlacement[], plateWid
   const cornerMountGeometry = union(...createCornerHeatInsertMounts(plateWidth, plateHeight, config));
   const frameStructureGeometry = difference(union(...frameOuterBoundGeometry), allCutouts);
   const topWallGeometry = createTopWalls(plateWidth, plateHeight, config);
+
+  // Create all connector cutouts
+  const connectorCutouts = createAllConnectors(plateWidth, plateHeight, config);
+  
+  if (connectorCutouts.length > 0) {
+    // Apply all connector cutouts to both walls and corner mounts
+    const allConnectorCutouts = union(...connectorCutouts);
+    const topWallWithCutouts = difference(topWallGeometry, allConnectorCutouts);
+    const cornerMountWithCutouts = difference(cornerMountGeometry, allConnectorCutouts);
+    
+    return union(plateWithFrameGeometry, frameStructureGeometry, topWallWithCutouts, cornerMountWithCutouts);
+  }
 
   return union(plateWithFrameGeometry, frameStructureGeometry, topWallGeometry, cornerMountGeometry);
 }
