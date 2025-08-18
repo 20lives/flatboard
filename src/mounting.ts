@@ -6,7 +6,7 @@ import { type Point2D } from './config.js';
  * These positions are shared between heat inserts (top) and screw sockets (bottom)
  */
 export function calculateMountingCornerPositions(plateWidth: number, plateHeight: number, config: any): Point2D[] {
-  const { cornerInset } = config;
+  const cornerInset = config.computed.cornerInset;
   
   return [
     { x: -cornerInset, y: -cornerInset },                                    // Bottom-left corner
@@ -22,18 +22,24 @@ export function calculateMountingCornerPositions(plateWidth: number, plateHeight
  */
 export function createCornerHeatInsertMounts(plateWidth: number, plateHeight: number, config: any) {
   const cornerPositions = calculateMountingCornerPositions(plateWidth, plateHeight, config);
-  const { mountRadius, insertHeight, insertRadius, mountCutoutWidth, mountCutoutOffset, insertMountCenterZ, extrusionTolerance } = config;
+  const mountRadius = config.mounting.corner.radius;
+  const insertHeight = config.mounting.insert.height;
+  const insertRadius = config.mounting.insert.radius;
+  const mountCutoutWidth = config.mounting.corner.cutoutWidth;
+  const mountCutoutOffset = config.mounting.corner.cutoutOffset;
+  const insertMountCenterZ = config.mounting.insert.centerZ;
+  const extrusionTolerance = config.tolerances.extrusion;
   
   const cornerMountData = cornerPositions.map((position, index) => ({
     ...position,
-    rotation: config.cornerRotations[index]
+    rotation: config.mounting.corner.rotations[index]
   }));
   
   return cornerMountData.map(({ x, y, rotation }) => {
     const mountGeometry = difference(
       cylinder(insertHeight, mountRadius),
       cylinder(insertHeight + extrusionTolerance, insertRadius)
-        .translate([config.mountOffset, config.mountOffset, 0]),
+        .translate([config.mounting.corner.offset, config.mounting.corner.offset, 0]),
       cube([mountCutoutWidth, mountRadius, insertHeight + extrusionTolerance])
         .translate([0, -mountCutoutOffset, 0]),
       cube([mountRadius, mountCutoutWidth, insertHeight + extrusionTolerance])
@@ -48,18 +54,24 @@ export function createCornerHeatInsertMounts(plateWidth: number, plateHeight: nu
 
 export function createCornerScrewMounts(plateWidth: number, plateHeight: number, config: any) {
   const cornerPositions = calculateMountingCornerPositions(plateWidth, plateHeight, config);
-  const { mountRadius, screwRadius, bottomWallHeight, bottomWallCenterZ, mountCutoutWidth, mountCutoutOffset, extrusionTolerance } = config;
+  const mountRadius = config.mounting.corner.radius;
+  const screwRadius = config.mounting.screw.radius;
+  const bottomWallHeight = config.enclosure.walls.bottom.height;
+  const bottomWallCenterZ = config.computed.bottomWallCenterZ;
+  const mountCutoutWidth = config.mounting.corner.cutoutWidth;
+  const mountCutoutOffset = config.mounting.corner.cutoutOffset;
+  const extrusionTolerance = config.tolerances.extrusion;
   
   const cornerMountData = cornerPositions.map((position, index) => ({
     ...position,
-    rotation: config.cornerRotations[index]
+    rotation: config.mounting.corner.rotations[index]
   }));
   
   return cornerMountData.map(({ x, y, rotation }) => {
     const mountGeometry = difference(
       cylinder(bottomWallHeight, mountRadius),
       cylinder(bottomWallHeight + extrusionTolerance, screwRadius)
-        .translate([config.mountOffset, config.mountOffset, 0]),
+        .translate([config.mounting.corner.offset, config.mounting.corner.offset, 0]),
       cube([mountCutoutWidth, mountRadius, bottomWallHeight + extrusionTolerance])
         .translate([0, -mountCutoutOffset, 0]),
       cube([mountRadius, mountCutoutWidth, bottomWallHeight + extrusionTolerance])
@@ -74,11 +86,16 @@ export function createCornerScrewMounts(plateWidth: number, plateHeight: number,
 
 export function createCornerScrewSockets(plateWidth: number, plateHeight: number, config: any) {
   const cornerPositions = calculateMountingCornerPositions(plateWidth, plateHeight, config);
-  const { screwRadius, screwHeadRadius, screwHeadHeight, bottomWallHeight, bottomWallCenterZ, extrusionTolerance } = config;
+  const screwRadius = config.mounting.screw.radius;
+  const screwHeadRadius = config.mounting.screw.head.radius;
+  const screwHeadHeight = config.mounting.screw.head.height;
+  const bottomWallHeight = config.enclosure.walls.bottom.height;
+  const bottomWallCenterZ = config.computed.bottomWallCenterZ;
+  const extrusionTolerance = config.tolerances.extrusion;
   
   const cornerSocketData = cornerPositions.map((position, index) => ({
     ...position,
-    rotation: config.cornerRotations[index]
+    rotation: config.mounting.corner.rotations[index]
   }));
   
   return cornerSocketData.map(({ x, y, rotation }) => {
@@ -87,7 +104,7 @@ export function createCornerScrewSockets(plateWidth: number, plateHeight: number
       cylinder(screwHeadHeight + extrusionTolerance, screwHeadRadius)
         .translate([0, 0, -(bottomWallHeight - screwHeadHeight) / 2]),
     )
-      .translate([config.mountOffset, config.mountOffset, 0])
+      .translate([config.mounting.corner.offset, config.mounting.corner.offset, 0])
       .rotate([0, 0, rotation])
       .translate([x, y, bottomWallCenterZ]);
   });

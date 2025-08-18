@@ -1,24 +1,5 @@
 import { CONFIG, type Point2D, type KeyPlacement } from './config.js';
-
-// Utility functions
-export const calculateHalfIndex = (n: number) => (n - 1) / 2;
-export const convertDegreesToRadians = (degrees: number) => (Math.PI * degrees) / 180;
-export const calculateAbsoluteCosineSine = (angle: number) => Math.abs(Math.cos(angle)) + Math.abs(Math.sin(angle));
-
-export function rotatePoint(point: Point2D, pivot: Point2D, degrees: number): Point2D {
-  if (!degrees) return point;
-  
-  const radians = convertDegreesToRadians(degrees);
-  const cosValue = Math.cos(radians);
-  const sinValue = Math.sin(radians);
-  const deltaX = point.x - pivot.x;
-  const deltaY = point.y - pivot.y;
-  
-  return {
-    x: pivot.x + cosValue * deltaX - sinValue * deltaY,
-    y: pivot.y + sinValue * deltaX + cosValue * deltaY
-  };
-}
+import { calculateHalfIndex, convertDegreesToRadians, calculateAbsoluteCosineSine, rotatePoint } from './utils.js';
 
 /**
  * Generates key positions for the right hand half of the keyboard
@@ -26,15 +7,15 @@ export function rotatePoint(point: Point2D, pivot: Point2D, degrees: number): Po
  */
 export function buildRightHandLayout(config = CONFIG): KeyPlacement[] {
   const keyPlacements: KeyPlacement[] = [];
-  const rowHalfIndex = calculateHalfIndex(config.rows);
+  const rowHalfIndex = calculateHalfIndex(config.layout.matrix.rows);
   
   // Generate main matrix keys in a grid pattern
-  for (let rowIndex = 0; rowIndex < config.rows; rowIndex++) {
-    const rowYPosition = (rowHalfIndex - rowIndex) * config.pitch;
-    const rowXOffset = config.baseRowOffsets[rowIndex] ?? 0;
+  for (let rowIndex = 0; rowIndex < config.layout.matrix.rows; rowIndex++) {
+    const rowYPosition = (rowHalfIndex - rowIndex) * config.layout.matrix.pitch;
+    const rowXOffset = config.layout.matrix.baseRowOffsets[rowIndex] ?? 0;
     
-    for (let colIndex = 0; colIndex < config.cols; colIndex++) {
-      const colXPosition = (colIndex - calculateHalfIndex(config.cols)) * config.pitch + rowXOffset;
+    for (let colIndex = 0; colIndex < config.layout.matrix.cols; colIndex++) {
+      const colXPosition = (colIndex - calculateHalfIndex(config.layout.matrix.cols)) * config.layout.matrix.pitch + rowXOffset;
       keyPlacements.push({ 
         pos: { x: colXPosition, y: rowYPosition }, 
         rot: 0 
@@ -43,26 +24,26 @@ export function buildRightHandLayout(config = CONFIG): KeyPlacement[] {
   }
 
   // Generate thumb cluster with ergonomic positioning
-  const baseBottomYPosition = -rowHalfIndex * config.pitch;
+  const baseBottomYPosition = -rowHalfIndex * config.layout.matrix.pitch;
   const thumbAnchorPoint: Point2D = { 
-    x: config.thumbXOffset, 
-    y: baseBottomYPosition - config.thumbYOffset 
+    x: config.thumb.offset.x, 
+    y: baseBottomYPosition - config.thumb.offset.y 
   };
-  const thumbHalfIndex = calculateHalfIndex(config.thumbKeys);
+  const thumbHalfIndex = calculateHalfIndex(config.thumb.cluster.keys);
 
-  for (let thumbIndex = 0; thumbIndex < config.thumbKeys; thumbIndex++) {
-    const gridPosition: Point2D = config.thumbVertical
-      ? { x: 0, y: (thumbHalfIndex - thumbIndex) * config.thumbPitch }
-      : { x: (thumbIndex - thumbHalfIndex) * config.thumbPitch, y: 0 };
+  for (let thumbIndex = 0; thumbIndex < config.thumb.cluster.keys; thumbIndex++) {
+    const gridPosition: Point2D = config.thumb.cluster.vertical
+      ? { x: 0, y: (thumbHalfIndex - thumbIndex) * config.thumb.cluster.pitch }
+      : { x: (thumbIndex - thumbHalfIndex) * config.thumb.cluster.pitch, y: 0 };
 
-    const keyOffset = config.thumbPerKeyOffset[thumbIndex] ?? { x: 0, y: 0 };
+    const keyOffset = config.thumb.perKey.offsets[thumbIndex] ?? { x: 0, y: 0 };
     const preRotationPosition = { 
       x: thumbAnchorPoint.x + gridPosition.x + keyOffset.x, 
       y: thumbAnchorPoint.y + gridPosition.y + keyOffset.y 
     };
     
-    const worldPosition = rotatePoint(preRotationPosition, thumbAnchorPoint, config.thumbClusterRotation);
-    const totalRotation = (config.thumbPerKeyRotation[thumbIndex] ?? 0) + config.thumbClusterRotation;
+    const worldPosition = rotatePoint(preRotationPosition, thumbAnchorPoint, config.thumb.cluster.rotation);
+    const totalRotation = (config.thumb.perKey.rotations[thumbIndex] ?? 0) + config.thumb.cluster.rotation;
 
     keyPlacements.push({ pos: worldPosition, rot: totalRotation });
   }
@@ -71,18 +52,18 @@ export function buildRightHandLayout(config = CONFIG): KeyPlacement[] {
 }
 
 export function applyGlobalRotation(keyPlacements: KeyPlacement[], config = CONFIG): KeyPlacement[] {
-  if (!config.baseRotationDegrees) return keyPlacements;
+  if (!config.layout.rotation.baseDegrees) return keyPlacements;
   
   return keyPlacements.map(({ pos, rot }) => ({
-    pos: rotatePoint(pos, { x: 0, y: 0 }, config.baseRotationDegrees),
-    rot: rot + config.baseRotationDegrees,
+    pos: rotatePoint(pos, { x: 0, y: 0 }, config.layout.rotation.baseDegrees),
+    rot: rot + config.layout.rotation.baseDegrees,
   }));
 }
 
 export function createSplitLayout(config = CONFIG) {
   const rightHandKeys = applyGlobalRotation(buildRightHandLayout(config), config);
 
-  const { maximumKeySize } = config;
+  const maximumKeySize = config.computed.maximumKeySize;
   let minimumXPosition = Infinity;
   let maximumXPosition = -Infinity;
   
@@ -95,7 +76,7 @@ export function createSplitLayout(config = CONFIG) {
   
   const groupCenterXPosition = (minimumXPosition + maximumXPosition) / 2;
   const groupHalfWidth = (maximumXPosition - minimumXPosition) / 2;
-  const targetRightCenterXPosition = groupHalfWidth + config.centerGap / 2;
+  const targetRightCenterXPosition = groupHalfWidth + config.layout.spacing.centerGap / 2;
   const xPositionOffset = targetRightCenterXPosition - groupCenterXPosition;
 
   const rightPlacedKeys = rightHandKeys.map(({ pos, rot }) => ({ 
@@ -114,7 +95,7 @@ export function createSplitLayout(config = CONFIG) {
 export function getLayoutForBuildSide(config = CONFIG) {
   const { rightPlaced, leftPlaced } = createSplitLayout(config);
   
-  switch (config.buildSide) {
+  switch (config.layout.build.side) {
     case 'left':
       return leftPlaced;
     case 'right':
@@ -126,7 +107,7 @@ export function getLayoutForBuildSide(config = CONFIG) {
 }
 
 export function calculatePlateDimensions(keyPlacements: KeyPlacement[], config = CONFIG) {
-  const { maximumKeySize } = config;
+  const maximumKeySize = config.computed.maximumKeySize;
   let minimumXPosition = Infinity;
   let maximumXPosition = -Infinity;
   let minimumYPosition = Infinity;
@@ -141,11 +122,11 @@ export function calculatePlateDimensions(keyPlacements: KeyPlacement[], config =
     maximumYPosition = Math.max(maximumYPosition, pos.y + rotationExtent);
   }
   
-  const plateWidth = (maximumXPosition - minimumXPosition) + 2 * config.edgeMargin;
-  const plateHeight = (maximumYPosition - minimumYPosition) + 2 * config.edgeMargin;
+  const plateWidth = (maximumXPosition - minimumXPosition) + 2 * config.layout.spacing.edgeMargin;
+  const plateHeight = (maximumYPosition - minimumYPosition) + 2 * config.layout.spacing.edgeMargin;
   const plateOffset: Point2D = { 
-    x: -minimumXPosition + config.edgeMargin, 
-    y: -minimumYPosition + config.edgeMargin 
+    x: -minimumXPosition + config.layout.spacing.edgeMargin, 
+    y: -minimumYPosition + config.layout.spacing.edgeMargin 
   };
   
   return { plateWidth, plateHeight, plateOffset };

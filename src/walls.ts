@@ -1,7 +1,8 @@
 import { cube, difference } from "scad-js";
 
 function createWallGeometry(plateWidth: number, plateHeight: number, wallHeight: number, wallCenterZPosition: number, config: any) {
-  const { wallThickness, extrusionTolerance } = config;
+  const wallThickness = config.enclosure.walls.thickness;
+  const extrusionTolerance = config.tolerances.extrusion;
   
   const outerWallGeometry = cube([
     plateWidth + 2 * wallThickness,
@@ -28,13 +29,15 @@ function createWallGeometry(plateWidth: number, plateHeight: number, wallHeight:
 }
 
 export function createTopWalls(plateWidth: number, plateHeight: number, config: any) {
-  const { topWallHeight, topWallCenterZ } = config;
+  const topWallHeight = config.enclosure.walls.top.height;
+  const topWallCenterZ = config.computed.topWallCenterZ;
   
   return createWallGeometry(plateWidth, plateHeight, topWallHeight, topWallCenterZ, config);
 }
 
 export function createBottomWalls(plateWidth: number, plateHeight: number, config: any) {
-  const { bottomWallHeight, bottomWallCenterZ } = config;
+  const bottomWallHeight = config.enclosure.walls.bottom.height;
+  const bottomWallCenterZ = config.computed.bottomWallCenterZ;
   
   return createWallGeometry(plateWidth, plateHeight, bottomWallHeight, bottomWallCenterZ, config);
 }

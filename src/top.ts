@@ -10,7 +10,7 @@ function createBasePlateGeometry(plateWidth: number, plateHeight: number, topPla
 }
 
 export function generateKeyboardPlate(allKeyPlacements: KeyPlacement[], plateWidth: number, plateHeight: number, plateOffset: Point2D, config: any) {
-  const basePlateGeometry = createBasePlateGeometry(plateWidth, plateHeight, config.topPlateThickness);
+  const basePlateGeometry = createBasePlateGeometry(plateWidth, plateHeight, config.switch.plate.thickness);
 
   // Create all switch-related cutouts using the extracted module
   const { switchHoleCutouts, thinZoneCutouts, allCutouts } = createAllSwitchCutouts(
@@ -19,14 +19,14 @@ export function generateKeyboardPlate(allKeyPlacements: KeyPlacement[], plateWid
 
   // Create frame outer boundary cutouts
   const frameOuterBoundGeometry = createFrameOuterBoundCutouts(
-    allKeyPlacements, plateOffset, config.frameWallThickness, config.frameScaleFactor, config.totalThickness, config.thinZone
+    allKeyPlacements, plateOffset, config.enclosure.frame.wallThickness, config.enclosure.frame.scaleFactor, config.switch.plate.totalThickness, config.switch.cutout.thinZone
   );
 
   const plateWithFrameGeometry = difference(
     basePlateGeometry,
     union(...frameOuterBoundGeometry)
-      .scale([1, 1, config.manufacturingScaleMargin])
-      .translate([0, 0, config.generalClearance])
+      .scale([1, 1, config.computed.manufacturingScaleMargin])
+      .translate([0, 0, config.tolerances.general])
   );
 
   const cornerMountGeometry = union(...createCornerHeatInsertMounts(plateWidth, plateHeight, config));

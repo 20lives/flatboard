@@ -69,11 +69,11 @@ export function createFrameOuterBoundCutouts(keyPlacements: KeyPlacement[], plat
  * Creates all switch-related cutout geometry as a single union
  */
 export function createAllSwitchCutouts(keyPlacements: KeyPlacement[], plateOffset: Point2D, config: any) {
-  const { frameStructureHeight } = config;
+  const frameStructureHeight = config.computed.frameStructureHeight;
 
-  const switchHoleCutouts = createSwitchHoleCutouts(keyPlacements, plateOffset, config.generalClearance, config.totalThickness, config.cutoutSize);
-  const thinZoneCutouts = createThinZoneCutouts(keyPlacements, plateOffset, frameStructureHeight, config.generalClearance, config.thinZone);
-  const frameOuterBoundCutouts = createFrameOuterBoundCutouts(keyPlacements, plateOffset, config.frameWallThickness, config.frameScaleFactor, config.totalThickness, config.thinZone);
+  const switchHoleCutouts = createSwitchHoleCutouts(keyPlacements, plateOffset, config.tolerances.general, config.switch.plate.totalThickness, config.switch.cutout.size);
+  const thinZoneCutouts = createThinZoneCutouts(keyPlacements, plateOffset, frameStructureHeight, config.tolerances.general, config.switch.cutout.thinZone);
+  const frameOuterBoundCutouts = createFrameOuterBoundCutouts(keyPlacements, plateOffset, config.enclosure.frame.wallThickness, config.enclosure.frame.scaleFactor, config.switch.plate.totalThickness, config.switch.cutout.thinZone);
 
   return {
     switchHoleCutouts,

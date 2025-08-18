@@ -3,7 +3,8 @@ import { createBottomWalls } from './walls.js';
 import { createCornerScrewSockets, createCornerScrewMounts } from './mounting.js';
 
 export function generateBottomCase(plateWidth: number, plateHeight: number, config: any) {
-  const { wallThickness, bottomThickness } = config;
+  const wallThickness = config.enclosure.walls.thickness;
+  const bottomThickness = config.enclosure.walls.bottom.thickness;
   
   const bottomPlateGeometry = cube([
     plateWidth + 2 * wallThickness,
@@ -30,6 +31,6 @@ export function generateBottomCase(plateWidth: number, plateHeight: number, conf
       ...cornerMountGeometry,
     ),
     union(...cornerScrewSocketGeometry),
-    createBottomWalls(plateWidth + 0.2, plateHeight + 0.2, config).translate([-0.1,-0.1, config.bottomThickness]),
+    createBottomWalls(plateWidth + 0.2, plateHeight + 0.2, config).translate([-0.1,-0.1, bottomThickness]),
   );
 }

@@ -36,7 +36,7 @@ export function buildBottomCase(profileName?: string) {
 
 export function buildCompleteEnclosure(profileName?: string) {
   const { CONFIG } = buildWithConfig(profileName);
-  const topPlateGeometry = buildTopPlate(profileName).translate([0, 0, CONFIG.topWallHeight + CONFIG.bottomThickness ]);
+  const topPlateGeometry = buildTopPlate(profileName).translate([0, 0, CONFIG.enclosure.walls.top.height + CONFIG.enclosure.walls.bottom.thickness ]);
   const bottomCaseGeometry = buildBottomCase(profileName);
   return union(topPlateGeometry, bottomCaseGeometry);
 }
@@ -52,16 +52,16 @@ export function build(generateStlFiles = false, profileName?: string) {
   ];
 
   outputFiles.forEach(async ({ fileName, modelGeometry }) => {
-    writeFileSync(`./dist/${fileName}.scad`, modelGeometry.serialize({ $fn: CONFIG.openscadResolution }));
+    writeFileSync(`./dist/${fileName}.scad`, modelGeometry.serialize({ $fn: CONFIG.output.openscad.resolution }));
     if (generateStlFiles) {
-      writeFileSync(`./dist/${fileName}.stl`, await modelGeometry.render({ $fn: CONFIG.openscadResolution }));
+      writeFileSync(`./dist/${fileName}.stl`, await modelGeometry.render({ $fn: CONFIG.output.openscad.resolution }));
     }
   });
 
   console.log(`Generated SCAD files for profile: ${activeProfile}`);
   console.log(`  • Keyboard size: ${allKeyPlacements.length} keys`);
   console.log(`  • Plate dimensions: ${plateWidth.toFixed(1)}×${plateHeight.toFixed(1)}mm`);
-  console.log(`  • Thickness: ${CONFIG.totalThickness}mm`);
+  console.log(`  • Thickness: ${CONFIG.switch.plate.totalThickness}mm`);
 }
 
 /**
@@ -70,11 +70,11 @@ export function build(generateStlFiles = false, profileName?: string) {
 export function listProfiles() {
   console.log('Available keyboard profiles:');
   Object.entries(KEYBOARD_PROFILES).forEach(([name, profile]) => {
-    const cols = profile.cols || 3;
-    const rows = profile.rows || 5;
-    const thumbKeys = profile.thumbKeys || 0;
-    const buildSide = profile.buildSide || 'both';
-    const switchType = profile.switchType || 'choc';
+    const cols = profile.layout?.matrix?.cols || 3;
+    const rows = profile.layout?.matrix?.rows || 5;
+    const thumbKeys = profile.thumb?.cluster?.keys || 0;
+    const buildSide = profile.layout?.build?.side || 'both';
+    const switchType = profile.switch?.type || 'choc';
     
     const totalKeys = ((cols * rows) + thumbKeys) * (buildSide !== 'both' ? 1 : 2);
     
