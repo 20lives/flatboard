@@ -70,17 +70,30 @@ export function build(generateStlFiles = false, profileName?: string) {
 export function listProfiles() {
   console.log('Available keyboard profiles:');
   Object.entries(KEYBOARD_PROFILES).forEach(([name, profile]) => {
-    const cols = profile.layout?.matrix?.cols || 3;
-    const rows = profile.layout?.matrix?.rows || 5;
-    const thumbKeys = profile.thumb?.cluster?.keys || 0;
-    const buildSide = profile.layout?.build?.side || 'both';
-    const switchType = profile.switch?.type || 'choc';
+    // Get the final config to access merged rowLayout
+    const finalConfig = createConfig(name);
+    const rowLayout = finalConfig.layout.matrix.rowLayout;
+    const thumbKeys = finalConfig.thumb.cluster.keys;
+    const buildSide = finalConfig.layout.build.side;
+    const switchType = finalConfig.switch.type;
     
-    const totalKeys = ((cols * rows) + thumbKeys) * (buildSide !== 'both' ? 1 : 2);
+    if (!rowLayout || rowLayout.length === 0) {
+      console.log(`  • ${name}: ERROR - No rowLayout defined`);
+      return;
+    }
+    
+    // Sum all row lengths for total matrix keys
+    const matrixKeys = rowLayout.reduce((sum, row) => sum + row.length, 0);
+    
+    // Create layout description showing start:length patterns
+    const layoutPattern = rowLayout.map(row => `${row.start}:${row.length}`).join(',');
+    const layoutDescription = `{${layoutPattern}}`;
+    
+    const totalKeys = (matrixKeys + thumbKeys) * (buildSide !== 'both' ? 1 : 2);
     
     const sideInfo = buildSide === 'both' ? '' : ` (${buildSide} side)`;
-    const thumbInfo = thumbKeys > 0 ? `+ ${thumbKeys} thumbs` : '';
+    const thumbInfo = thumbKeys > 0 ? ` + ${thumbKeys} thumbs` : '';
     const switchInfo = ` [${switchType}]`;
-    console.log(`  • ${name}: ${totalKeys} keys ${cols}×${rows} ${thumbInfo}${sideInfo}${switchInfo}`);
+    console.log(`  • ${name}: ${totalKeys} keys ${layoutDescription}${thumbInfo}${sideInfo}${switchInfo}`);
   });
 }

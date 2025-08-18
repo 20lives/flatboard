@@ -7,15 +7,29 @@ import { calculateHalfIndex, convertDegreesToRadians, calculateAbsoluteCosineSin
  */
 export function buildRightHandLayout(config = CONFIG): KeyPlacement[] {
   const keyPlacements: KeyPlacement[] = [];
-  const rowHalfIndex = calculateHalfIndex(config.layout.matrix.rows);
   
-  // Generate main matrix keys in a grid pattern
-  for (let rowIndex = 0; rowIndex < config.layout.matrix.rows; rowIndex++) {
+  // Unified rowLayout system: { start, length, offset }
+  const rowLayout = config.layout.matrix.rowLayout;
+  
+  if (!rowLayout || rowLayout.length === 0) {
+    throw new Error('rowLayout must be defined and non-empty. All profiles must use the unified rowLayout system.');
+  }
+  
+  const totalRows = rowLayout.length;
+  const rowHalfIndex = calculateHalfIndex(totalRows);
+  
+  // Find the maximum grid extent to establish global coordinate system
+  const maxGridExtent = Math.max(...rowLayout.map(row => row.start + row.length - 1));
+  const globalColHalfIndex = calculateHalfIndex(maxGridExtent + 1);
+  
+  for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
+    const { start, length, offset } = rowLayout[rowIndex];
     const rowYPosition = (rowHalfIndex - rowIndex) * config.layout.matrix.pitch;
-    const rowXOffset = config.layout.matrix.baseRowOffsets[rowIndex] ?? 0;
+    const rowXOffset = offset ?? 0;
     
-    for (let colIndex = 0; colIndex < config.layout.matrix.cols; colIndex++) {
-      const colXPosition = (colIndex - calculateHalfIndex(config.layout.matrix.cols)) * config.layout.matrix.pitch + rowXOffset;
+    for (let keyIndex = 0; keyIndex < length; keyIndex++) {
+      const gridColIndex = start + keyIndex;
+      const colXPosition = (gridColIndex - globalColHalfIndex) * config.layout.matrix.pitch + rowXOffset;
       keyPlacements.push({ 
         pos: { x: colXPosition, y: rowYPosition }, 
         rot: 0 
@@ -24,7 +38,8 @@ export function buildRightHandLayout(config = CONFIG): KeyPlacement[] {
   }
 
   // Generate thumb cluster with ergonomic positioning
-  const baseBottomYPosition = -rowHalfIndex * config.layout.matrix.pitch;
+  const actualRowHalfIndex = calculateHalfIndex(rowLayout.length);
+  const baseBottomYPosition = -actualRowHalfIndex * config.layout.matrix.pitch;
   const thumbAnchorPoint: Point2D = { 
     x: config.thumb.offset.x, 
     y: baseBottomYPosition - config.thumb.offset.y 

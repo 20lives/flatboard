@@ -2,9 +2,7 @@
 const BASE_PARAMETERS = {
   layout: {
     matrix: {
-      cols: 3,
-      rows: 5,
-      baseRowOffsets: [],
+      rowLayout: [], // Array of { start, length, offset } objects defining each row
       pitch: 18.2,
     },
     spacing: {
@@ -186,9 +184,13 @@ export const KEYBOARD_PROFILES = {
   'ortho-36': {
     layout: {
       matrix: {
-        cols: 3,
-        rows: 5,
-        baseRowOffsets: [5, 1, 0, 3, 4],
+        rowLayout: [
+          { start: 0, length: 3, offset: 5 },
+          { start: 0, length: 3, offset: 1 },
+          { start: 0, length: 3, offset: 0 },
+          { start: 0, length: 3, offset: 3 },
+          { start: 0, length: 3, offset: 4 }
+        ],
       },
       spacing: {
         centerGap: 25.0,
@@ -210,8 +212,18 @@ export const KEYBOARD_PROFILES = {
   'ortho-4x10': {
     layout: {
       matrix: {
-        cols: 4,
-        rows: 10,
+        rowLayout: [
+          { start: 0, length: 4, offset: 0 },
+          { start: 0, length: 4, offset: 0 },
+          { start: 0, length: 4, offset: 0 },
+          { start: 0, length: 4, offset: 0 },
+          { start: 0, length: 4, offset: 0 },
+          { start: 0, length: 4, offset: 0 },
+          { start: 0, length: 4, offset: 0 },
+          { start: 0, length: 4, offset: 0 },
+          { start: 0, length: 4, offset: 0 },
+          { start: 0, length: 4, offset: 0 }
+        ],
       },
       spacing: {
         centerGap: 25.0,
@@ -236,9 +248,13 @@ export const KEYBOARD_PROFILES = {
     },
     layout: {
       matrix: {
-        cols: 3,
-        rows: 5,
-        baseRowOffsets: [5, 1, 0, 3, 4],
+        rowLayout: [
+          { start: 0, length: 3, offset: 5 },
+          { start: 0, length: 3, offset: 1 },
+          { start: 0, length: 3, offset: 0 },
+          { start: 0, length: 3, offset: 3 },
+          { start: 0, length: 3, offset: 4 }
+        ],
       },
       spacing: {
         centerGap: 23.0,
@@ -280,8 +296,9 @@ export const KEYBOARD_PROFILES = {
   'test-single-choc': {
     layout: {
       matrix: {
-        cols: 1,
-        rows: 1,
+        rowLayout: [
+          { start: 0, length: 1, offset: 0 }
+        ],
       },
       spacing: {
         edgeMargin: 10.0,
@@ -299,8 +316,9 @@ export const KEYBOARD_PROFILES = {
   'test-single-mx': {
     layout: {
       matrix: {
-        cols: 1,
-        rows: 1,
+        rowLayout: [
+          { start: 0, length: 1, offset: 0 }
+        ],
       },
       spacing: {
         edgeMargin: 15.0,
@@ -328,8 +346,11 @@ export const KEYBOARD_PROFILES = {
   'test-multi-connectors': {
     layout: {
       matrix: {
-        cols: 3,
-        rows: 3,
+        rowLayout: [
+          { start: 0, length: 3, offset: 0 },
+          { start: 0, length: 3, offset: 0 },
+          { start: 0, length: 3, offset: 0 }
+        ],
       },
       spacing: {
         edgeMargin: 15.0,
@@ -377,6 +398,69 @@ export const KEYBOARD_PROFILES = {
         enabled: true,
         face: 'left',
         position: 0.7,
+        clearance: 0.1,
+      },
+    ],
+  },
+  'test-custom-rows': {
+    layout: {
+      matrix: {
+        rowLayout: [
+          { start: 0, length: 4, offset: 2 },
+          { start: 0, length: 5, offset: 0 },
+          { start: 0, length: 5, offset: 1 }
+        ],
+      },
+      spacing: {
+        edgeMargin: 12.0,
+      },
+      build: {
+        side: 'right',
+      },
+    },
+    thumb: {
+      cluster: {
+        keys: 2,
+      },
+    },
+    connectors: [
+      {
+        type: 'usbC',
+        enabled: true,
+        face: 'top',
+        position: 0.3,
+        clearance: 0.2,
+      },
+    ],
+  },
+  'test-advanced-layout': {
+    layout: {
+      matrix: {
+        rowLayout: [
+          { start: -1, length: 3 },  // Row 0: keys at grid positions 0,1,2,3
+          { start: 1, length: 4 },  // Row 1: keys at grid positions 0,1,2,3,4  
+          { start: 0, length: 3 }   // Row 2: keys at grid positions 1,2,3,4 (offset right)
+        ],
+        baseRowOffsets: [2, 0, 1],  // Stagger still works
+      },
+      spacing: {
+        edgeMargin: 10.0,
+      },
+      build: {
+        side: 'right',
+      },
+    },
+    thumb: {
+      cluster: {
+        keys: 2,
+      },
+    },
+    connectors: [
+      {
+        type: 'trrs',
+        enabled: true,
+        face: 'left',
+        position: 0.5,
         clearance: 0.1,
       },
     ],

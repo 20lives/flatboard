@@ -85,6 +85,7 @@ bun run list
 - `test-single-choc` - Single key for testing
 - `test-single-mx` - Single key with MX switch
 - `test-multi-connectors` - **Demo:** USB-C + TRRS connectors
+- `test-custom-rows` - **Demo:** Custom keys per row [4,5,5]
 
 > **🚀 New to split keyboards?** Start with `ortho-36` - it's the sweet spot of ergonomics and usability!
 
@@ -101,6 +102,7 @@ Want a wider split? More thumb keys? USB-C on the side? **No problem!** Just cop
     matrix: {
       cols: 4,                // 🔥 Want more keys? Just increase!
       rows: 6,                // Bigger hands? More rows!
+      keysPerRow: [3, 4, 5, 5, 4, 3], // 🎨 OR custom keys per row!
     },
     spacing: {
       centerGap: 40.0,        // 🔄 Wider split for comfort

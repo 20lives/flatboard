@@ -50,32 +50,53 @@ export class ProfileManager {
   static validateProfile(profile: ParameterProfile): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Check required numeric values are positive
-    if (profile.cols !== undefined && profile.cols <= 0) {
-      errors.push('cols must be positive');
-    }
-    if (profile.rows !== undefined && profile.rows <= 0) {
-      errors.push('rows must be positive');
-    }
-    if (profile.thumbKeys !== undefined && profile.thumbKeys < 0) {
-      errors.push('thumbKeys must be non-negative');
+    // Check rowLayout is properly defined
+    const rowLayout = profile.layout?.matrix?.rowLayout;
+    if (rowLayout) {
+      if (!Array.isArray(rowLayout) || rowLayout.length === 0) {
+        errors.push('rowLayout must be a non-empty array');
+      } else {
+        for (let i = 0; i < rowLayout.length; i++) {
+          const row = rowLayout[i];
+          if (!row || typeof row !== 'object') {
+            errors.push(`rowLayout[${i}] must be an object`);
+            continue;
+          }
+          if (typeof row.start !== 'number') {
+            errors.push(`rowLayout[${i}].start must be a number`);
+          }
+          if (typeof row.length !== 'number' || row.length <= 0) {
+            errors.push(`rowLayout[${i}].length must be a positive number`);
+          }
+          if (row.offset !== undefined && typeof row.offset !== 'number') {
+            errors.push(`rowLayout[${i}].offset must be a number if defined`);
+          }
+        }
+      }
     }
 
-    // Check array lengths match expectations
-    if (profile.baseRowOffsets && profile.rows && profile.baseRowOffsets.length !== profile.rows) {
-      errors.push('baseRowOffsets array length must match rows');
+    // Check thumb cluster configuration
+    const thumbKeys = profile.thumb?.cluster?.keys;
+    if (thumbKeys !== undefined && thumbKeys < 0) {
+      errors.push('thumb cluster keys must be non-negative');
     }
-    if (profile.thumbPerKeyRotation && profile.thumbKeys && profile.thumbPerKeyRotation.length !== profile.thumbKeys) {
-      errors.push('thumbPerKeyRotation array length must match thumbKeys');
+
+    const thumbPerKeyRotation = profile.thumb?.perKey?.rotations;
+    if (thumbPerKeyRotation && thumbKeys && thumbPerKeyRotation.length !== thumbKeys) {
+      errors.push('thumb perKey rotations array length must match thumb cluster keys');
     }
-    if (profile.thumbPerKeyOffset && profile.thumbKeys && profile.thumbPerKeyOffset.length !== profile.thumbKeys) {
-      errors.push('thumbPerKeyOffset array length must match thumbKeys');
+
+    const thumbPerKeyOffset = profile.thumb?.perKey?.offsets;
+    if (thumbPerKeyOffset && thumbKeys && thumbPerKeyOffset.length !== thumbKeys) {
+      errors.push('thumb perKey offsets array length must match thumb cluster keys');
     }
 
     // Check thickness relationships
-    if (profile.totalThickness !== undefined && profile.plateThickness !== undefined) {
-      if (profile.plateThickness >= profile.totalThickness) {
-        errors.push('plateThickness must be less than totalThickness');
+    const totalThickness = profile.switch?.plate?.totalThickness;
+    const plateThickness = profile.switch?.plate?.thickness;
+    if (totalThickness !== undefined && plateThickness !== undefined) {
+      if (plateThickness >= totalThickness) {
+        errors.push('switch plate thickness must be less than total thickness');
       }
     }
 
