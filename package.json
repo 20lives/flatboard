@@ -1,0 +1,23 @@
+{
+  "name": "flatboard",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "bun run ./src/index.ts build",
+    "build:dev": "bun run --watch ./src/index.ts build",
+    "clean": "rm -rf ./dist/*.scad ./dist/*.stl",
+    "list": "bun run ./src/index.ts list",
+    "profiles": "bun run ./src/index.ts list",
+    "help": "bun run ./src/index.ts help"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "scad-js": "^0.6.6"
+  }
+}
