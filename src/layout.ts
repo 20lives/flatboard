@@ -1,11 +1,11 @@
-import { CONFIG, type Point2D, type KeyPlacement } from './config.js';
+import { type Point2D, type KeyPlacement, type KeyboardConfig } from './config.js';
 import { calculateHalfIndex, convertDegreesToRadians, calculateAbsoluteCosineSine, rotatePoint } from './utils.js';
 
 /**
  * Generates key positions for the right hand half of the keyboard
  * Includes both the main matrix keys and thumb cluster
  */
-export function buildRightHandLayout(config = CONFIG): KeyPlacement[] {
+export function buildRightHandLayout(config: KeyboardConfig): KeyPlacement[] {
   const keyPlacements: KeyPlacement[] = [];
   
   // Unified rowLayout system: { start, length, offset }
@@ -66,7 +66,7 @@ export function buildRightHandLayout(config = CONFIG): KeyPlacement[] {
   return keyPlacements;
 }
 
-export function applyGlobalRotation(keyPlacements: KeyPlacement[], config = CONFIG): KeyPlacement[] {
+export function applyGlobalRotation(keyPlacements: KeyPlacement[], config: KeyboardConfig): KeyPlacement[] {
   if (!config.layout.rotation.baseDegrees) return keyPlacements;
   
   return keyPlacements.map(({ pos, rot }) => ({
@@ -75,7 +75,7 @@ export function applyGlobalRotation(keyPlacements: KeyPlacement[], config = CONF
   }));
 }
 
-export function createSplitLayout(config = CONFIG) {
+export function createSplitLayout(config: KeyboardConfig) {
   const rightHandKeys = applyGlobalRotation(buildRightHandLayout(config), config);
 
   const maximumKeySize = config.computed.maximumKeySize;
@@ -107,7 +107,7 @@ export function createSplitLayout(config = CONFIG) {
   return { rightPlaced: rightPlacedKeys, leftPlaced: leftPlacedKeys };
 }
 
-export function getLayoutForBuildSide(config = CONFIG) {
+export function getLayoutForBuildSide(config: KeyboardConfig) {
   const { rightPlaced, leftPlaced } = createSplitLayout(config);
   
   switch (config.layout.build.side) {
@@ -121,7 +121,7 @@ export function getLayoutForBuildSide(config = CONFIG) {
   }
 }
 
-export function calculatePlateDimensions(keyPlacements: KeyPlacement[], config = CONFIG) {
+export function calculatePlateDimensions(keyPlacements: KeyPlacement[], config: KeyboardConfig) {
   const maximumKeySize = config.computed.maximumKeySize;
   let minimumXPosition = Infinity;
   let maximumXPosition = -Infinity;

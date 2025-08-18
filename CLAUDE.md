@@ -26,38 +26,63 @@ The codebase demonstrates advanced parametric thinking through:
 
 ```
 src/
-├── index.ts           # CLI interface and command routing
-├── build.ts           # Build orchestration and file generation  
-├── config.ts          # Configuration system and profile management
-├── profiles.ts        # Profile management utilities
-├── layout.ts          # Keyboard layout geometry and mathematics
-├── switch-sockets.ts  # Switch cutout geometry generation
-├── walls.ts           # Case wall geometry
-├── mounting.ts        # Heat insert and screw mounting hardware
-├── top.ts            # Top plate assembly
-└── bottom.ts         # Bottom case assembly
+├── index.ts              # CLI interface and command routing
+├── build.ts              # Build orchestration and file generation  
+├── config.ts             # Main configuration factory and exports
+├── interfaces.ts         # TypeScript interfaces and type definitions
+├── base-params.ts        # Base default configuration parameters
+├── switches.ts           # Switch specifications (Choc, MX)
+├── connector-specs.ts    # Connector specifications (USB-C, TRRS)
+├── keyboard-profiles.ts  # Predefined keyboard profiles
+├── profile-utils.ts      # Profile management utilities
+├── layout.ts             # Keyboard layout geometry and mathematics
+├── switch-sockets.ts     # Switch cutout geometry generation
+├── walls.ts              # Case wall geometry
+├── mounting.ts           # Heat insert and screw mounting hardware
+├── connector.ts          # Generic connector system
+├── top.ts               # Top plate assembly
+├── bottom.ts            # Bottom case assembly
+└── utils.ts             # Utility functions
 
-dist/                  # Generated output files
-├── top.scad          # Top plate OpenSCAD file
-├── bottom.scad       # Bottom case OpenSCAD file
-└── complete.scad     # Complete assembly
+dist/                     # Generated output files
+├── top.scad             # Top plate OpenSCAD file
+├── bottom.scad          # Bottom case OpenSCAD file
+└── complete.scad        # Complete assembly
 ```
 
 ## Configuration System
 
-### Hierarchical Configuration Architecture
-The system uses a sophisticated inheritance-based configuration:
+### Modular Configuration Architecture
+The system uses a sophisticated modular configuration architecture with TypeScript interfaces:
 
 ```
-BASE_PARAMETERS → KEYBOARD_PROFILES → SWITCH_SPECS → Final CONFIG
+BASE_PARAMETERS → KEYBOARD_PROFILES → SWITCH_SPECS → Final KeyboardConfig
 ```
 
-#### `config.ts` - Configuration Engine
-- **BASE_PARAMETERS**: 67 default parameters covering all aspects
-- **SWITCH_SPECS**: Choc vs MX switch specifications with auto-inheritance
-- **KEYBOARD_PROFILES**: 5 predefined layouts with partial overrides
-- **Final CONFIG**: Runtime merging with computed values flattened
-- **Profile factory**: `createConfig(profileName)` for dynamic switching
+#### Modular Configuration Files
+- **`interfaces.ts`**: Complete TypeScript interfaces for all configuration types
+- **`base-params.ts`**: BASE_PARAMETERS with comprehensive defaults
+- **`switches.ts`**: SWITCH_SPECS for Choc vs MX with auto-inheritance  
+- **`connector-specs.ts`**: CONNECTOR_SPECS for USB-C, TRRS, and extensible types
+- **`keyboard-profiles.ts`**: Predefined keyboard profiles with partial overrides
+- **`config.ts`**: Main factory orchestrating the modular system
+
+#### Advanced Row Layout System
+The new `rowLayout` system provides pixel-perfect control over key placement:
+
+```typescript
+rowLayout: [
+  { start: 0, length: 3, offset: 5 },   // Row 0: 3 keys, 5mm column stagger
+  { start: -1, length: 4, offset: 0 },  // Row 1: 4 keys, starts at grid -1
+  { start: 1, length: 3, offset: 2 }    // Row 2: 3 keys, offset right + stagger
+]
+```
+
+**Key Features:**
+- **`start`**: Starting grid position (can be negative for precise placement)
+- **`length`**: Number of keys in each row
+- **`offset`**: Column stagger amount in millimeters
+- **Full TypeScript support**: Complete interface definitions with IntelliSense
 
 ### Switch Type Support
 The system supports both **Kailh Choc** and **Cherry MX** switches with automatic parameter inheritance:
@@ -71,24 +96,40 @@ The system supports both **Kailh Choc** and **Cherry MX** switches with automati
 - Standard Cherry MX compatibility
 
 ### Predefined Profiles
-- **`ortho-36`**: 36-key split (3×5 + 3 thumb) - Choc switches
+- **`ortho-36`**: 36-key split (rowLayout system + 3 thumb) - Choc switches
 - **`ortho-36-mx`**: Same layout optimized for MX switches  
+- **`ortho-4x10`**: 40-key single-side layout with 10-row configuration
 - **`test-single-choc/mx`**: Single key test profiles for both switch types
-- **`ortho-4x10`**: 40-key single-side layout
+- **`test-custom-rows`**: Demo of simple custom row layouts  
+- **`test-advanced-layout`**: Demo of advanced grid positioning with negative start values
+- **`test-multi-connectors`**: Demo of multiple connector types and positioning
 
 ## Key Modules
 
-#### `layout.ts` - Mathematical Layout Engine
+#### `interfaces.ts` - TypeScript Type System
+- **Complete type definitions**: All configuration interfaces with full IntelliSense support
+- **KeyboardConfig interface**: Main configuration type with nested structure
+- **RowLayoutItem interface**: Precise row definition with start, length, offset
+- **Modular types**: Switch, connector, mounting, and enclosure specifications
+
+#### `layout.ts` - Mathematical Layout Engine  
+- **Unified rowLayout system**: Single algorithm supporting all layout types
 - **Ergonomic positioning**: Sophisticated thumb cluster with per-key rotation/offset
 - **Split keyboard logic**: Automatic left/right mirroring with rotation inversion  
 - **Rotation-aware geometry**: Precise bounding box calculations for rotated keys
-- **Constraint-based positioning**: All coordinates calculated, not hardcoded
+- **Constraint-based positioning**: All coordinates calculated from rowLayout definitions
 
 #### `switch-sockets.ts` - Modular Cutout System
 - **Switch hole cutouts**: Precise switch mounting holes
 - **Thin zone cutouts**: Socket clearance zones around switches
 - **Frame boundary cutouts**: Structural frame boundaries
 - **Parametric geometry**: All cutouts scale with configuration changes
+
+#### `connector.ts` - Generic Connector System
+- **Multiple connector types**: USB-C (pill geometry), TRRS (circle geometry)
+- **Configurable placement**: Any face (top/bottom/left/right) with precise positioning  
+- **Smart positioning**: Automatic clearance from plate thickness and wall boundaries
+- **Type-safe configuration**: Connector specifications with geometry definitions
 
 #### `mounting.ts` - Professional Mounting Hardware
 - **Heat insert mounts**: Top plate corner tabs with M3 insert holes
@@ -139,34 +180,51 @@ writeFileSync('model.scad', final.serialize({$fn: 64}));
 
 ## Technical Innovations
 
-### 1. Split Wall Architecture
+### 1. Modular TypeScript Architecture
+Complete separation of concerns with full type safety:
+- **Modular configuration**: 7 focused files instead of 1 monolithic config
+- **TypeScript interfaces**: Complete type definitions for all configuration options
+- **Row layout system**: Unified `{ start, length, offset }` system for all keyboard layouts
+- **Type-safe connectors**: Strongly typed connector specifications with geometry definitions
+
+### 2. Advanced Row Layout System
+Revolutionary approach to keyboard layout definition:
+```typescript
+rowLayout: [
+  { start: -1, length: 3, offset: 2 },  // Can start at negative grid positions
+  { start: 1, length: 4, offset: 0 },   // Each row independently positioned
+  { start: 0, length: 3, offset: 1 }    // Perfect control over stagger and placement
+]
+```
+
+### 3. Split Wall Architecture
 The enclosure uses a unique split wall design:
 - **Top plate**: Has 6mm walls extending downward
 - **Bottom case**: Has 6mm walls extending upward
 - **Assembly**: Walls meet to form complete 12mm enclosure height
 - **Benefits**: Better printing orientation and easier assembly
 
-### 2. Corner Mounting System
+### 4. Corner Mounting System
 Sophisticated heat insert mounting with perfect alignment:
 - **Top corners**: Heat insert mounts with M3 insert holes
 - **Bottom corners**: Screw socket posts with M3 clearance
 - **Shared positioning**: Single function ensures perfect alignment
 - **Rotated geometry**: Each corner properly oriented for assembly
 
-### 3. Parametric Switch Mounting
+### 5. Parametric Switch Mounting
 Advanced switch mounting with frame structures:
 - **Individual frames**: Each switch gets its own mounting frame
 - **Thin zone cutouts**: Precise plate contact areas
 - **Frame reinforcement**: Additional material around switch perimeter
 - **Boolean optimization**: Efficient CSG operations
 
-### 4. Rotation-Aware Calculations
+### 6. Rotation-Aware Calculations
 Handles arbitrary key rotations throughout the system:
 ```typescript
 const rotationExtent = 0.5 * absoluteCosineSine(normalizedAngle) * keySize;
 ```
 
-### 5. Modular Boolean Operations
+### 7. Modular Boolean Operations
 Clean separation of geometry generation and assembly:
 ```typescript
 // Top plate assembly

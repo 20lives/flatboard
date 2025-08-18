@@ -1,11 +1,11 @@
 import { cube, cylinder, difference, union } from "scad-js";
-import { type Point2D } from './config.js';
+import { type Point2D, type KeyboardConfig } from './config.js';
 
 /**
  * Calculates the exact corner positions for mounting hardware
  * These positions are shared between heat inserts (top) and screw sockets (bottom)
  */
-export function calculateMountingCornerPositions(plateWidth: number, plateHeight: number, config: any): Point2D[] {
+export function calculateMountingCornerPositions(plateWidth: number, plateHeight: number, config: KeyboardConfig): Point2D[] {
   const cornerInset = config.computed.cornerInset;
   
   return [
@@ -20,7 +20,7 @@ export function calculateMountingCornerPositions(plateWidth: number, plateHeight
  * Creates heat insert mounts for the top plate corners
  * These are the mounting tabs that extend from the top plate with heat insert holes
  */
-export function createCornerHeatInsertMounts(plateWidth: number, plateHeight: number, config: any) {
+export function createCornerHeatInsertMounts(plateWidth: number, plateHeight: number, config: KeyboardConfig) {
   const cornerPositions = calculateMountingCornerPositions(plateWidth, plateHeight, config);
   const mountRadius = config.mounting.corner.radius;
   const insertHeight = config.mounting.insert.height;
@@ -52,7 +52,7 @@ export function createCornerHeatInsertMounts(plateWidth: number, plateHeight: nu
   });
 }
 
-export function createCornerScrewMounts(plateWidth: number, plateHeight: number, config: any) {
+export function createCornerScrewMounts(plateWidth: number, plateHeight: number, config: KeyboardConfig) {
   const cornerPositions = calculateMountingCornerPositions(plateWidth, plateHeight, config);
   const mountRadius = config.mounting.corner.radius;
   const screwRadius = config.mounting.screw.radius;
@@ -84,7 +84,7 @@ export function createCornerScrewMounts(plateWidth: number, plateHeight: number,
   });
 }
 
-export function createCornerScrewSockets(plateWidth: number, plateHeight: number, config: any) {
+export function createCornerScrewSockets(plateWidth: number, plateHeight: number, config: KeyboardConfig) {
   const cornerPositions = calculateMountingCornerPositions(plateWidth, plateHeight, config);
   const screwRadius = config.mounting.screw.radius;
   const screwHeadRadius = config.mounting.screw.head.radius;

@@ -1,8 +1,9 @@
 import { cube, difference, union } from "scad-js";
+import { type KeyboardConfig } from './config.js';
 import { createBottomWalls } from './walls.js';
 import { createCornerScrewSockets, createCornerScrewMounts } from './mounting.js';
 
-export function generateBottomCase(plateWidth: number, plateHeight: number, config: any) {
+export function generateBottomCase(plateWidth: number, plateHeight: number, config: KeyboardConfig) {
   const wallThickness = config.enclosure.walls.thickness;
   const bottomThickness = config.enclosure.walls.bottom.thickness;
   

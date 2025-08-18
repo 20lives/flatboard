@@ -1,4 +1,4 @@
-import { KEYBOARD_PROFILES, type ParameterProfile } from './config.js';
+import { KEYBOARD_PROFILES, type ParameterProfile, type RowLayoutItem } from './config.js';
 
 /**
  * Profile management utilities
@@ -57,7 +57,7 @@ export class ProfileManager {
         errors.push('rowLayout must be a non-empty array');
       } else {
         for (let i = 0; i < rowLayout.length; i++) {
-          const row = rowLayout[i];
+          const row = rowLayout[i] as RowLayoutItem;
           if (!row || typeof row !== 'object') {
             errors.push(`rowLayout[${i}] must be an object`);
             continue;
@@ -105,13 +105,3 @@ export class ProfileManager {
 
 }
 
-/**
- * Export utility functions for convenience
- */
-export const {
-  getAvailableProfiles,
-  profileExists,
-  getProfile,
-  createCustomProfile,
-  validateProfile,
-} = ProfileManager;

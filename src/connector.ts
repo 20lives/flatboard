@@ -1,19 +1,11 @@
-import { cube, cylinder, hull, union } from "scad-js";
-import { type Point2D, CONNECTOR_SPECS } from './config.js';
+import { cylinder, hull } from "scad-js";
+import { type Point2D, CONNECTOR_SPECS, type KeyboardConfig, type ConnectorConfig } from './config.js';
 
 /**
  * Generic connector geometry and positioning utilities
  */
 
 export type ConnectorFace = 'top' | 'bottom' | 'left' | 'right';
-
-export interface ConnectorConfig {
-  type: keyof typeof CONNECTOR_SPECS;
-  enabled: boolean;
-  face: ConnectorFace;
-  position: number;
-  clearance: number;
-}
 
 /**
  * Calculates the 3D position for a connector on a specified face
@@ -23,7 +15,7 @@ export function calculateConnectorPosition(
   plateHeight: number, 
   face: ConnectorFace, 
   position: number,
-  config: any
+  config: KeyboardConfig
 ): { x: number; y: number; z: number; rotation: [number, number, number] } {
   const wallThickness = config.enclosure.walls.thickness;
   const topWallHeight = config.enclosure.walls.top.height;

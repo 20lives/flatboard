@@ -1,5 +1,5 @@
 import { square, union } from "scad-js";
-import { type KeyPlacement, type Point2D } from './config.js';
+import { type KeyPlacement, type Point2D, type KeyboardConfig } from './config.js';
 
 /**
  * Creates a rotated square geometry for switch cutouts
@@ -68,17 +68,15 @@ export function createFrameOuterBoundCutouts(keyPlacements: KeyPlacement[], plat
 /**
  * Creates all switch-related cutout geometry as a single union
  */
-export function createAllSwitchCutouts(keyPlacements: KeyPlacement[], plateOffset: Point2D, config: any) {
+export function createAllSwitchCutouts(keyPlacements: KeyPlacement[], plateOffset: Point2D, config: KeyboardConfig) {
   const frameStructureHeight = config.computed.frameStructureHeight;
 
   const switchHoleCutouts = createSwitchHoleCutouts(keyPlacements, plateOffset, config.tolerances.general, config.switch.plate.totalThickness, config.switch.cutout.size);
   const thinZoneCutouts = createThinZoneCutouts(keyPlacements, plateOffset, frameStructureHeight, config.tolerances.general, config.switch.cutout.thinZone);
-  const frameOuterBoundCutouts = createFrameOuterBoundCutouts(keyPlacements, plateOffset, config.enclosure.frame.wallThickness, config.enclosure.frame.scaleFactor, config.switch.plate.totalThickness, config.switch.cutout.thinZone);
 
   return {
     switchHoleCutouts,
     thinZoneCutouts,
-    frameOuterBoundCutouts,
     allCutouts: union(...switchHoleCutouts, ...thinZoneCutouts)
   };
 }

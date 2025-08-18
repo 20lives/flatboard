@@ -85,7 +85,8 @@ bun run list
 - `test-single-choc` - Single key for testing
 - `test-single-mx` - Single key with MX switch
 - `test-multi-connectors` - **Demo:** USB-C + TRRS connectors
-- `test-custom-rows` - **Demo:** Custom keys per row [4,5,5]
+- `test-custom-rows` - **Demo:** Custom row layouts with rowLayout system
+- `test-advanced-layout` - **Demo:** Advanced grid positioning with start/length/offset
 
 > **🚀 New to split keyboards?** Start with `ortho-36` - it's the sweet spot of ergonomics and usability!
 
@@ -96,13 +97,16 @@ bun run list
 Want a wider split? More thumb keys? USB-C on the side? **No problem!** Just copy a profile and modify the values you want to change. Here's how easy it is:
 
 ```typescript
-// Add this to src/config.ts - that's it!
+// Add this to src/keyboard-profiles.ts - that's it!
 'my-dream-keyboard': {
   layout: {
     matrix: {
-      cols: 4,                // 🔥 Want more keys? Just increase!
-      rows: 6,                // Bigger hands? More rows!
-      keysPerRow: [3, 4, 5, 5, 4, 3], // 🎨 OR custom keys per row!
+      rowLayout: [             // 🎯 Precise control over each row!
+        { start: 0, length: 4, offset: 2 },  // Row 0: 4 keys with column stagger
+        { start: 0, length: 5, offset: 0 },  // Row 1: 5 keys, no stagger  
+        { start: 1, length: 4, offset: 1 },  // Row 2: 4 keys, offset right
+        { start: 0, length: 3, offset: 3 },  // Row 3: 3 keys with stagger
+      ],
     },
     spacing: {
       centerGap: 40.0,        // 🔄 Wider split for comfort
@@ -165,6 +169,39 @@ Want a wider split? More thumb keys? USB-C on the side? **No problem!** Just cop
 - **Mathematical precision** - Trigonometric layout calculations
 - **Manufacturing ready** - Designed for FDM 3D printing constraints
 - **Modular architecture** - Clean separation enables easy modification
+
+## 🏗️ **Modular Architecture**
+
+**flatboard** uses a clean, modular TypeScript architecture that makes customization and maintenance easy:
+
+### **📁 Configuration Modules**
+- **`interfaces.ts`** - All TypeScript types and interfaces for full type safety
+- **`base-params.ts`** - Default configuration that all profiles inherit from  
+- **`switches.ts`** - Switch specifications (Choc, MX) with precise measurements
+- **`connector-specs.ts`** - Connector definitions (USB-C, TRRS) with geometry specs
+- **`keyboard-profiles.ts`** - Pre-built keyboard profiles ready to use or customize
+- **`config.ts`** - Main factory that orchestrates everything together
+
+### **🎯 Advanced Row Layout System**
+Our `rowLayout` system gives you **pixel-perfect control** over key placement:
+
+```typescript
+rowLayout: [
+  { start: -1, length: 3, offset: 2 },  // Row can start anywhere on grid
+  { start: 1, length: 4, offset: 0 },   // Each row independently positioned  
+  { start: 0, length: 3, offset: 1 }    // Custom stagger per row
+]
+```
+
+- **`start`**: Starting grid position (can be negative!)
+- **`length`**: Number of keys in the row
+- **`offset`**: Column stagger amount in mm
+
+### **🔧 Type Safety**
+Full TypeScript support with:
+- **IntelliSense**: Autocomplete for all configuration options
+- **Compile-time validation**: Catch errors before building
+- **Interface documentation**: Self-documenting configuration structure
 
 ## 🔍 Advanced Features
 

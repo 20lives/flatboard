@@ -1,6 +1,7 @@
 import { cube, difference } from "scad-js";
+import { type KeyboardConfig } from './config.js';
 
-function createWallGeometry(plateWidth: number, plateHeight: number, wallHeight: number, wallCenterZPosition: number, config: any) {
+function createWallGeometry(plateWidth: number, plateHeight: number, wallHeight: number, wallCenterZPosition: number, config: KeyboardConfig) {
   const wallThickness = config.enclosure.walls.thickness;
   const extrusionTolerance = config.tolerances.extrusion;
   
@@ -28,14 +29,14 @@ function createWallGeometry(plateWidth: number, plateHeight: number, wallHeight:
   return difference(outerWallGeometry, innerCavityGeometry);
 }
 
-export function createTopWalls(plateWidth: number, plateHeight: number, config: any) {
+export function createTopWalls(plateWidth: number, plateHeight: number, config: KeyboardConfig) {
   const topWallHeight = config.enclosure.walls.top.height;
   const topWallCenterZ = config.computed.topWallCenterZ;
   
   return createWallGeometry(plateWidth, plateHeight, topWallHeight, topWallCenterZ, config);
 }
 
-export function createBottomWalls(plateWidth: number, plateHeight: number, config: any) {
+export function createBottomWalls(plateWidth: number, plateHeight: number, config: KeyboardConfig) {
   const bottomWallHeight = config.enclosure.walls.bottom.height;
   const bottomWallCenterZ = config.computed.bottomWallCenterZ;
   

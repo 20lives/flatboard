@@ -1,5 +1,5 @@
 import { build, listProfiles } from './build.js';
-import { ProfileManager } from './profiles.js';
+import { ProfileManager } from './profile-utils.js';
 import { DEFAULT_PROFILE } from './config.js';
 
 // Command line argument parsing
