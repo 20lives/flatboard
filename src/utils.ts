@@ -2,6 +2,7 @@
  * Utility functions shared across the keyboard generation system
  */
 
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import type { Point2D } from './config.js';
 
 // ============================================================================
@@ -104,4 +105,18 @@ export function rotatePoint(point: Point2D, pivot: Point2D, degrees: number): Po
     x: pivot.x + cosValue * deltaX - sinValue * deltaY,
     y: pivot.y + sinValue * deltaX + cosValue * deltaY,
   };
+}
+
+
+
+/**
+ *  file utiles
+ */
+
+export function writeFileSyncSafe(path: string, data: string) {
+  const dir = path.split('/').slice(0, -1).join('/');
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+  writeFileSync(path, data);
 }

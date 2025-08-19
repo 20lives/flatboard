@@ -1,16 +1,17 @@
-import { writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { union } from 'scad-js';
 
 import { getLayoutForBuildSide, calculatePlateDimensions } from './layout.js';
 import { generateKeyboardPlate } from './top.js';
 import { generateBottomCase } from './bottom.js';
 import { createConfig, KEYBOARD_PROFILES, DEFAULT_PROFILE } from './config.js';
+import { writeFileSyncSafe } from './utils.js';
 
 /**
  * Builds keyboard components with the specified configuration
  */
 function buildWithConfig(profileName?: string) {
-  const CONFIG = createConfig(profileName);
+  const CONFIG = createConfig(profileName as keyof typeof KEYBOARD_PROFILES);
 
   const allKeyPlacements = getLayoutForBuildSide(CONFIG);
   const { plateWidth, plateHeight, plateOffset } = calculatePlateDimensions(allKeyPlacements, CONFIG);
@@ -56,9 +57,9 @@ export function build(generateStlFiles = false, profileName?: string) {
   ];
 
   outputFiles.forEach(async ({ fileName, modelGeometry }) => {
-    writeFileSync(`./dist/${fileName}.scad`, modelGeometry.serialize({ $fn: CONFIG.output.openscad.resolution }));
+    writeFileSyncSafe(`./dist/${fileName}.scad`, modelGeometry.serialize({ $fn: CONFIG.output.openscad.resolution }));
     if (generateStlFiles) {
-      writeFileSync(`./dist/${fileName}.stl`, await modelGeometry.render({ $fn: CONFIG.output.openscad.resolution }));
+      writeFileSyncSafe(`./dist/${fileName}.stl`, await modelGeometry.render({ $fn: CONFIG.output.openscad.resolution }));
     }
   });
 
@@ -75,7 +76,7 @@ export function listProfiles() {
   console.log('Available keyboard profiles:');
   Object.entries(KEYBOARD_PROFILES).forEach(([name, _profile]) => {
     // Get the final config to access merged rowLayout
-    const finalConfig = createConfig(name);
+    const finalConfig = createConfig(name as keyof typeof KEYBOARD_PROFILES);
     const rowLayout = finalConfig.layout.matrix.rowLayout;
     const thumbKeys = finalConfig.thumb.cluster.keys;
     const buildSide = finalConfig.layout.build.side;
