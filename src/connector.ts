@@ -1,142 +1,123 @@
 import { cylinder, hull } from 'scad-js';
-import { CONNECTOR_SPECS, type KeyboardConfig, type ConnectorConfig } from './config.js';
-
-/**
- * Generic connector geometry and positioning utilities
- */
+import { CONNECTOR_SPECS } from './config.js';
+import type { ConnectorConfig, KeyboardConfig } from './interfaces.js';
+import * as A from 'fp-ts/Array';
+import { pipe } from 'fp-ts/function';
 
 export type ConnectorFace = 'top' | 'bottom' | 'left' | 'right';
 
-/**
- * Calculates the 3D position for a connector on a specified face
- */
 export function calculateConnectorPosition(
   plateWidth: number,
   plateHeight: number,
-  face: ConnectorFace,
-  position: number,
+  offset: number,
+  connectorConfig: ConnectorConfig,
   config: KeyboardConfig,
 ): { x: number; y: number; z: number; rotation: [number, number, number] } {
-  const wallThickness = config.enclosure.walls.thickness;
-  const topWallHeight = config.enclosure.walls.top.height;
-  const topPlateThickness = config.enclosure.plate.thickness;
 
-  // Calculate connector Z position using the specified formula
-  // Center vertically at: plate_thickness + (total_wall_height - plate_thickness) / 2 from the top
-  const connectorZ = -(topPlateThickness + (topWallHeight - topPlateThickness) / 2);
+  const { face, position } = connectorConfig;
 
-  // Clamp position to valid range
+  const { thickness: wallThickness, height: wallsHeight } = config.enclosure.walls;
+
+  const { topThickness, bottomThickness } = config.enclosure.plate;
+
   const normalizedPosition = Math.max(0, Math.min(1, position));
 
-  // Calculate wall dimensions (walls extend wallThickness on all sides)
-  const totalWallWidth = plateWidth + 2 * wallThickness;
-  const totalWallHeight = plateHeight + 2 * wallThickness;
+  const isTopBottom = ['top', 'bottom'].includes(face);
 
-  switch (face) {
-    case 'top':
-      return {
-        x: -wallThickness + totalWallWidth * normalizedPosition, // Position along top wall length
-        y: plateHeight + wallThickness, // Position at outer face of top wall
-        z: connectorZ, // Position below plate with clearance
-        rotation: [0, 0, 0],
-      };
+  const totalWallLength = 2 * wallThickness + (isTopBottom ? plateWidth : plateHeight);
 
-    case 'bottom':
-      return {
-        x: -wallThickness + totalWallWidth * normalizedPosition, // Position along bottom wall length
-        y: -wallThickness, // Position at outer face of bottom wall
-        z: connectorZ, // Position below plate with clearance
-        rotation: [0, 0, 180],
-      };
+  const rotation: [number, number, number] = [
+    0, 
+    0, 
+    { top: 0, bottom: 180, left: -90, right: 90 }[face] ?? 0,
+  ];
 
-    case 'left':
-      return {
-        x: 0, // Position at center of left wall (cutout extends both ways after rotation)
-        y: -wallThickness + totalWallHeight * normalizedPosition, // Position along left wall length
-        z: connectorZ, // Position below plate with clearance
-        rotation: [0, 0, -90],
-      };
+  const spec = CONNECTOR_SPECS[connectorConfig.type as keyof typeof CONNECTOR_SPECS];
+  const centerDistance = spec.geometry.centerDistance ?? 0;
+  const circleRadius = spec.geometry.circleRadius + connectorConfig.clearance;
 
-    case 'right':
-      return {
-        x: plateWidth, // Position at center of right wall (cutout extends both ways after rotation)
-        y: -wallThickness + totalWallHeight * normalizedPosition, // Position along right wall length
-        z: connectorZ, // Position below plate with clearance
-        rotation: [0, 0, 90],
-      };
+  if (face == 'top') {
+    return {
+      x: centerDistance + wallThickness * 2 - offset + (plateWidth - centerDistance - 2 * circleRadius - wallThickness + offset + offset) * normalizedPosition,
+      y: wallThickness,
+      z: (wallsHeight + topThickness - bottomThickness) / 2,
+      rotation,
+    }
+  }
+  if (face == 'right') {
+    return {
+      x: plateWidth + wallThickness,
+      y: centerDistance + wallThickness * 2 - offset + (plateHeight - centerDistance - 2 * circleRadius - wallThickness + 2 * offset) * normalizedPosition,
+      z: (wallsHeight + topThickness - bottomThickness) / 2,
+      rotation,
+    }
+
+  }
+  if (face == 'bottom') {
+    return {
+      x: centerDistance + wallThickness * 2 - offset + (plateWidth - centerDistance - 2 * circleRadius - wallThickness + 2 * offset) * normalizedPosition - circleRadius / 2 - wallThickness,
+      y: plateHeight + wallThickness,
+      z: (wallsHeight + topThickness - bottomThickness) / 2,
+      rotation,
+    }
+
+  }
+  if (face == 'left') {
+    return {
+      x: wallThickness,
+      y: centerDistance + circleRadius / 2 - offset + (plateHeight - centerDistance - 2 * circleRadius - 2 * wallThickness + 2 * offset) * normalizedPosition,
+      z: (wallsHeight + topThickness - bottomThickness) / 2,
+      rotation,
+    }
+
   }
 }
 
-/**
- * Creates a connector socket cutout geometry based on connector type
- */
-export function createConnectorCutout(connectorConfig: ConnectorConfig, globalConfig: any) {
-  const spec = CONNECTOR_SPECS[connectorConfig.type];
-  const wallThickness = globalConfig.enclosure.walls.thickness;
-  const extrusionTolerance = globalConfig.tolerances.extrusion;
-
-  // Use full wall thickness + tolerance for complete penetration
-  const cutoutDepth = wallThickness + extrusionTolerance * 2 + 0.2;
+export function createConnectorCutout(connectorConfig: ConnectorConfig, globalConfig: KeyboardConfig) {
+  const spec = CONNECTOR_SPECS[connectorConfig.type as keyof typeof CONNECTOR_SPECS];
+  const { thickness } = globalConfig.enclosure.walls;
 
   if (spec.geometry.type === 'pill') {
-    // USB-C style: Two circles with hull
     const circleRadius = spec.geometry.circleRadius + connectorConfig.clearance;
     const centerDistance = spec.geometry.centerDistance;
-    const halfDistance = centerDistance / 2;
 
-    const leftCircle = cylinder(cutoutDepth, circleRadius).rotate([90, 0, 0]).translate([-halfDistance, 0, 0]);
+    const circle = cylinder(thickness + 0.1, circleRadius).rotate([90, 0, 0]);
 
-    const rightCircle = cylinder(cutoutDepth, circleRadius).rotate([90, 0, 0]).translate([halfDistance, 0, 0]);
-
-    return hull(leftCircle, rightCircle).translate([0, -cutoutDepth / 2 + 0.1, 0]);
+    return hull(
+      circle.translate([centerDistance , 0, 0]),
+      circle,
+    ).translate([circleRadius - centerDistance, -thickness / 2 , 0]);
   }
 
   if (spec.geometry.type === 'circle') {
-    // TRRS style: Single circle
     const radius = spec.geometry.radius + connectorConfig.clearance;
 
-    return cylinder(cutoutDepth, radius)
-      .rotate([90, 0, 0])
-      .translate([0, -cutoutDepth / 2 + 0.1, 0]);
+    return cylinder(thickness + 0.0, radius).rotate([90, 0, 0]).translate([0, -thickness / 2 + 0.00, 0]);
   }
 
   throw new Error(`Unknown connector geometry type: ${(spec.geometry as any).type}`);
 }
 
-/**
- * Creates a positioned connector cutout for the specified plate dimensions and configuration
- */
-export function createConnector(
+function createConnector(
   connectorConfig: ConnectorConfig,
   plateWidth: number,
   plateHeight: number,
-  globalConfig: any,
+  offset: number,
+  globalConfig: KeyboardConfig,
 ) {
   if (!connectorConfig.enabled) {
     return null;
   }
 
-  const position = calculateConnectorPosition(
-    plateWidth,
-    plateHeight,
-    connectorConfig.face,
-    connectorConfig.position,
-    globalConfig,
-  );
+  const position = calculateConnectorPosition( plateWidth, plateHeight, offset, connectorConfig, globalConfig);
 
-  const socketCutout = createConnectorCutout(connectorConfig, globalConfig);
-
-  return socketCutout.rotate(position.rotation).translate([position.x, position.y, position.z]);
+  return createConnectorCutout(connectorConfig, globalConfig)
+    .rotate(position.rotation).translate([position.x, position.y, position.z]);
 }
 
-/**
- * Creates all enabled connector cutouts for the keyboard
- */
-export function createAllConnectors(plateWidth: number, plateHeight: number, config: any) {
-  const connectors = config.connectors || [];
-
-  return connectors
-    .filter((connector: ConnectorConfig) => connector.enabled)
-    .map((connector: ConnectorConfig) => createConnector(connector, plateWidth, plateHeight, config))
-    .filter((cutout: any) => cutout !== null);
+export function createAllConnectors(plateWidth: number, plateHeight: number, offset: number, config: KeyboardConfig) {
+  return pipe(
+    config.connectors ?? [],
+    A.map((connector) => createConnector(connector, plateWidth, plateHeight, offset, config)),
+  );
 }

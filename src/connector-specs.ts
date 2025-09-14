@@ -1,10 +1,6 @@
-/**
- * Connector type specifications and configurations
- */
 
 import type { ConnectorSpec } from './interfaces.js';
 
-// Connector type specifications
 export const CONNECTOR_SPECS = {
   usbC: {
     description: 'USB-C Female Socket',

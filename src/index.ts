@@ -1,6 +1,6 @@
 import { build, listProfiles } from './build.js';
-import { ProfileManager } from './profile-utils.js';
 import { DEFAULT_PROFILE } from './config.js';
+import { ProfileManager } from './profile-utils.js';
 
 // Command line argument parsing
 const args = process.argv.slice(2);

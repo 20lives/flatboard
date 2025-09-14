@@ -38,7 +38,6 @@ src/
 ├── layout.ts             # Keyboard layout geometry and mathematics
 ├── switch-sockets.ts     # Switch cutout geometry generation
 ├── walls.ts              # Case wall geometry
-├── mounting.ts           # Heat insert and screw mounting hardware
 ├── connector.ts          # Generic connector system
 ├── top.ts               # Top plate assembly
 ├── bottom.ts            # Bottom case assembly
@@ -110,7 +109,7 @@ The system supports both **Kailh Choc** and **Cherry MX** switches with automati
 - **Complete type definitions**: All configuration interfaces with full IntelliSense support
 - **KeyboardConfig interface**: Main configuration type with nested structure
 - **RowLayoutItem interface**: Precise row definition with start, length, offset
-- **Modular types**: Switch, connector, mounting, and enclosure specifications
+- **Modular types**: Switch, connector, and enclosure specifications
 
 #### `layout.ts` - Mathematical Layout Engine  
 - **Unified rowLayout system**: Single algorithm supporting all layout types
@@ -131,20 +130,13 @@ The system supports both **Kailh Choc** and **Cherry MX** switches with automati
 - **Smart positioning**: Automatic clearance from plate thickness and wall boundaries
 - **Type-safe configuration**: Connector specifications with geometry definitions
 
-#### `mounting.ts` - Professional Mounting Hardware
-- **Heat insert mounts**: Top plate corner tabs with M3 insert holes
-- **Screw socket mounts**: Bottom case corner posts with M3 clearance
-- **Calculated positioning**: Automatic corner inset and rotation management
-- **Perfect alignment**: Shared positioning functions ensure assembly precision
-
 #### `walls.ts` - Enclosure Wall System
 - **Parametric walls**: Configurable thickness and height
 - **Top/bottom coordination**: Separate wall geometries for each component
 - **Boolean operations**: Clean internal cavities with proper clearances
 
 #### `top.ts` & `bottom.ts` - Assembly Modules
-- **Component integration**: Combines layout, mounting, walls, and switch systems
-- **Professional assembly**: Heat insert + screw mounting system
+- **Component integration**: Combines layout, walls, and switch systems
 - **Manufacturing ready**: Proper tolerances and print-friendly geometry
 
 #### `build.ts` - Build Orchestration
@@ -204,27 +196,20 @@ The enclosure uses a unique split wall design:
 - **Assembly**: Walls meet to form complete 12mm enclosure height
 - **Benefits**: Better printing orientation and easier assembly
 
-### 4. Corner Mounting System
-Sophisticated heat insert mounting with perfect alignment:
-- **Top corners**: Heat insert mounts with M3 insert holes
-- **Bottom corners**: Screw socket posts with M3 clearance
-- **Shared positioning**: Single function ensures perfect alignment
-- **Rotated geometry**: Each corner properly oriented for assembly
-
-### 5. Parametric Switch Mounting
+### 4. Parametric Switch Mounting
 Advanced switch mounting with frame structures:
 - **Individual frames**: Each switch gets its own mounting frame
 - **Thin zone cutouts**: Precise plate contact areas
 - **Frame reinforcement**: Additional material around switch perimeter
 - **Boolean optimization**: Efficient CSG operations
 
-### 6. Rotation-Aware Calculations
+### 5. Rotation-Aware Calculations
 Handles arbitrary key rotations throughout the system:
 ```typescript
 const rotationExtent = 0.5 * absoluteCosineSine(normalizedAngle) * keySize;
 ```
 
-### 7. Modular Boolean Operations
+### 6. Modular Boolean Operations
 Clean separation of geometry generation and assembly:
 ```typescript
 // Top plate assembly
@@ -263,7 +248,6 @@ The system generates three OpenSCAD files:
 **Layout**: 36-key split (15 per hand + 3 thumb keys each)
 **Dimensions**: ~252mm × 118mm plate
 **Wall System**: 6mm + 6mm split walls (12mm total height)
-**Mounting**: 4 corner heat inserts with M3 threaded assembly
 **Electronics**: Internal cavity with cable channel
 
 ## Usage
