@@ -15,16 +15,15 @@ TypeScript-based parametric design system for generating 3D-printable split keyb
 ## Project Structure
 
 ```
-src/
+src/                          # Core codebase (logic only)
 ├── index.ts                  # CLI with object literal command routing
 ├── build.ts                  # Build orchestration
 ├── config.ts                 # Configuration factory
+├── profile-loader.ts         # Dynamic profile discovery
 ├── interfaces.ts             # TypeScript type definitions
 ├── base-params.ts            # Default configuration
 ├── switches.ts               # Switch specifications (Choc, MX)
 ├── connector-specs.ts        # Connector definitions (USB-C, TRRS)
-├── keyboard-profiles.ts      # Profile data only (231 lines)
-├── profile-utils.ts          # Profile utilities and validation (272 lines)
 ├── layout.ts                 # Layout geometry calculations
 ├── switch-sockets.ts         # Switch cutout generation
 ├── walls.ts                  # Wall geometry
@@ -33,6 +32,12 @@ src/
 ├── bottom.ts                 # Bottom case assembly (fp-ts pipe)
 ├── bottom-pads-sockets.ts    # Socket structures (pure functional)
 └── utils.ts                  # Core utilities (trimmed)
+
+profiles/                     # User-editable keyboard profiles (data)
+├── index.ts                  # Auto-discovery using Bun.Glob
+├── split-36.ts               # 36-key split keyboard
+├── macropad-3x3.ts           # 3x3 macropad
+└── test-single-choc.ts       # Single key test
 
 dist/
 ├── top.scad                  # Generated top plate
@@ -45,15 +50,22 @@ dist/
 Configuration flows through modular layers:
 
 ```
-BASE_PARAMETERS → KEYBOARD_PROFILES → SWITCH_SPECS → KeyboardConfig
+profiles/*.ts → PROFILES (auto-discovered) → SWITCH_SPECS → KeyboardConfig
 ```
 
-### Module Separation
+### Architecture Separation
 
-- **`keyboard-profiles.ts`**: Pure profile data (KEYBOARD_PROFILES object and DEFAULT_PROFILE constant)
-- **`profile-utils.ts`**: Profile management logic (ProfileManager class + fp-ts utility functions)
+- **`profiles/`**: User-editable keyboard definitions (data layer)
+  - Each profile is a separate `.ts` file
+  - Add a new keyboard by adding a `.ts` file to this directory
+  - `profiles/index.ts` scans and imports all profiles using `Bun.Glob`
 
-This separation keeps configuration data separate from the logic that operates on it.
+- **`src/`**: Core codebase (logic layer)
+  - `profile-loader.ts`: Bridges profiles with the codebase
+  - `config.ts`: Configuration factory and merging
+  - No profile data stored in source code
+
+This separation allows users to add/modify profiles without touching the codebase.
 
 ### Row Layout System
 

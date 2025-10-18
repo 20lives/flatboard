@@ -41,12 +41,18 @@ Output files go to `dist/`:
 - `bottom.scad` - bottom case
 - `complete.scad` - assembled view
 
-## Configuration
+## Creating Your Own Keyboard
 
-Profiles are defined in `src/keyboard-profiles.ts`. Copy an existing profile to start:
+Profiles are stored in the `profiles/` directory. Each keyboard has its own file.
+
+### Quick Start
+
+Create a new file in `profiles/` (e.g., `profiles/my-layout.ts`):
 
 ```typescript
-'my-layout': {
+import type { ParameterProfile } from '../src/interfaces.js';
+
+export const profile: ParameterProfile = {
   layout: {
     matrix: {
       rowLayout: [
@@ -55,9 +61,8 @@ Profiles are defined in `src/keyboard-profiles.ts`. Copy an existing profile to 
         { start: 0, length: 4, offset: 5 },
       ],
     },
-    spacing: {
-      centerGap: 30.0,
-    },
+    edgeMargin: 8.0,
+    baseDegrees: 10.0,
   },
   switch: {
     type: 'choc',
@@ -65,8 +70,12 @@ Profiles are defined in `src/keyboard-profiles.ts`. Copy an existing profile to 
   thumb: {
     cluster: {
       keys: 3,
-      anchorIndex: 0,
-      rotation: 10,
+      spacing: 20.0,
+      rotation: 15.0,
+    },
+    offset: {
+      x: 25,
+      y: 2,
     },
   },
   connectors: [
@@ -78,7 +87,13 @@ Profiles are defined in `src/keyboard-profiles.ts`. Copy an existing profile to 
       clearance: 0.2,
     },
   ],
-}
+};
+```
+
+Build it:
+
+```bash
+bun run build -- my-layout
 ```
 
 ### Row layout system
