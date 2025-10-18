@@ -1,27 +1,90 @@
-import { cube, difference, union } from 'scad-js';
-import type { KeyboardConfig } from './config.js';
-import { createBottomWalls } from './walls.js';
-import { createCornerScrewSockets, createCornerScrewMounts } from './mounting.js';
+import { difference, union, hull, type ScadObject } from 'scad-js';
+import type { KeyboardConfig } from './interfaces.js';
+import { createRoundedSquare } from './utils.js';
+import { createAllConnectors } from './connector.js';
+import { createSiliconPadSocketStructures } from './bottom-pads-sockets.js';
+
+import * as A from 'fp-ts/Array';
+import { pipe } from 'fp-ts/function';
+
+const createConnectorCutouts = (
+  plateWidth: number,
+  plateHeight: number,
+  offset: number,
+  wallThickness: number,
+  topWallHeight: number,
+  bottomThickness: number,
+  config: KeyboardConfig,
+) => {
+  if (!config.connectors || config.connectors.length === 0) {
+    return null;
+  }
+
+  const allConnectors = createAllConnectors(
+    plateWidth - 2 * wallThickness,
+    plateHeight - 2 * wallThickness,
+    offset,
+    config,
+  );
+
+  const enabledConnectors = pipe(
+    allConnectors,
+    A.filter((c): c is ScadObject => c !== null),
+  );
+
+  const bottomConnectors = enabledConnectors;
+  const topConnectors = enabledConnectors.map((c) => c.translate_z(topWallHeight / 2));
+
+  return union(...A.zipWith(bottomConnectors, topConnectors, (a, b) => hull(a, b))).translate([
+    wallThickness,
+    wallThickness,
+    bottomThickness,
+  ]);
+};
 
 export function generateBottomCase(plateWidth: number, plateHeight: number, config: KeyboardConfig) {
   const wallThickness = config.enclosure.walls.thickness;
-  const bottomThickness = config.enclosure.walls.bottom.thickness;
+  const bottomThickness = config.enclosure.plate.bottomThickness;
+  const topWallHeight = config.enclosure.walls.height;
+  const plateThickness = config.enclosure.plate.topThickness;
+  const totalHeight = plateThickness + topWallHeight;
 
-  const bottomPlateGeometry = cube([
-    plateWidth + 2 * wallThickness,
-    plateHeight + 2 * wallThickness,
+  const dimensions = {
+    outerWidth: plateWidth + 2 * wallThickness,
+    outerHeight: plateHeight + 2 * wallThickness,
+  };
+
+  const squares = {
+    outer: createRoundedSquare(dimensions.outerWidth, dimensions.outerHeight),
+    base: createRoundedSquare(plateWidth, plateHeight),
+    inner: createRoundedSquare(plateWidth - 2 * wallThickness, plateHeight - 2 * wallThickness),
+  };
+
+  const baseGeometry = union(
+    squares.outer.linear_extrude(bottomThickness),
+    difference(squares.base, squares.inner)
+      .linear_extrude(totalHeight - plateThickness)
+      .translate_z(bottomThickness),
+  ).translate([dimensions.outerWidth / 2, dimensions.outerHeight / 2, 0]);
+
+  const offset = wallThickness;
+
+  const connectorCutouts = createConnectorCutouts(
+    plateWidth,
+    plateHeight,
+    offset,
+    wallThickness,
+    topWallHeight,
     bottomThickness,
-  ]).translate([plateWidth / 2, plateHeight / 2, bottomThickness / 2]);
-
-  const cornerMountGeometry = createCornerScrewMounts(plateWidth, plateHeight, config);
-  const bottomWallGeometry = difference(
-    createBottomWalls(plateWidth - 3, plateHeight - 3, config).translate([1.5, 1.5, 0]),
+    config,
   );
-  const cornerScrewSocketGeometry = createCornerScrewSockets(plateWidth, plateHeight, config);
 
-  return difference(
-    union(bottomPlateGeometry, bottomWallGeometry, ...cornerMountGeometry),
-    union(...cornerScrewSocketGeometry),
-    createBottomWalls(plateWidth + 0.2, plateHeight + 0.2, config).translate([-0.1, -0.1, bottomThickness]),
+  const socketStructures = createSiliconPadSocketStructures(plateWidth, plateHeight, bottomThickness, config);
+
+  return pipe(
+    baseGeometry,
+    (geometry) => (socketStructures.reinforcements ? union(geometry, socketStructures.reinforcements) : geometry),
+    (geometry) => (connectorCutouts ? difference(geometry, connectorCutouts) : geometry),
+    (geometry) => (socketStructures.cutouts ? difference(geometry, socketStructures.cutouts) : geometry),
   );
 }

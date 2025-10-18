@@ -1,26 +1,23 @@
-/**
- * Switch type specifications and configurations
- */
-
 import type { SwitchSpec } from './interfaces.js';
 
-// Switch type specifications
 export const SWITCH_SPECS = {
   choc: {
     description: 'Kailh Choc Low Profile',
     switch: {
       cutout: {
-        size: 13.8, // Kailh Choc switch cutout
-        thinZone: 15.0, // Clearance zone around switch
+        height: 1.5,
+        startHeight: 2.6,
+        inner: 13.8,
+        outer: 15.0,
       },
       plate: {
-        thickness: 1.6, // Recommended plate thickness for Choc
-        totalThickness: 8.0, // Low profile total thickness
+        thickness: 1.6,
+        totalThickness: 8.0,
       },
     },
     layout: {
       matrix: {
-        pitch: 18.0, // Choc spacing
+        spacing: 18.0, // Choc spacing
       },
     },
   },
@@ -28,17 +25,19 @@ export const SWITCH_SPECS = {
     description: 'Cherry MX Compatible',
     switch: {
       cutout: {
-        size: 13.9, // Cherry MX switch cutout
-        thinZone: 15.9, // Slightly larger clearance for MX
+        height: 1.5,
+        startHeight: 2.6,
+        inner: 13.8,
+        outer: 15.0,
       },
       plate: {
-        thickness: 4.1, // Standard MX plate thickness
-        totalThickness: 7.1, // Higher profile for MX switches
+        thickness: 1.6,
+        totalThickness: 8.0,
       },
     },
     layout: {
       matrix: {
-        pitch: 18.6, // Standard MX spacing (0.75")
+        spacing: 18.6, // MX spacing
       },
     },
   },

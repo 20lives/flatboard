@@ -11,35 +11,30 @@ export interface RowLayoutItem {
   start: number; // Starting grid position for this row
   length: number; // Number of keys in this row
   offset?: number; // Column stagger offset (optional, defaults to 0)
+  thumbAnchor?: number; // Optional thumb anchor key index for this row
 }
 
 // Matrix layout configuration
 export interface MatrixConfig {
   rowLayout: RowLayoutItem[];
-  pitch: number;
+  spacing: number;
 }
 
 // Layout configuration
 export interface LayoutConfig {
   matrix: MatrixConfig;
-  spacing: {
-    centerGap: number;
-    edgeMargin: number;
-  };
-  build: {
-    side: 'left' | 'right' | 'both';
-  };
-  rotation: {
-    baseDegrees: number;
-  };
+  edgeMargin: number;
+  baseDegrees: number;
 }
 
 // Switch configuration
 export interface SwitchConfig {
   type: 'choc' | 'mx';
   cutout: {
-    size: number;
-    thinZone: number;
+    inner: number;
+    outer: number;
+    height: number;
+    startHeight: number;
   };
   plate: {
     thickness: number;
@@ -51,76 +46,46 @@ export interface SwitchConfig {
 export interface ThumbConfig {
   cluster: {
     keys: number;
-    pitch: number;
-    vertical: boolean;
-    rotation: number;
+    spacing?: number;
+    rotation?: number;
   };
   offset: Point2D;
-  perKey: {
+  perKey?: {
     rotations: number[];
     offsets: Point2D[];
+  };
+}
+
+// Silicon pad socket configuration
+export interface SiliconPadSocket {
+  shape: 'round' | 'square';
+  size: {
+    radius?: number; // For round sockets
+    width?: number; // For square sockets
+    height?: number; // For square sockets
+  };
+  depth: number; // Socket depth into bottom plate
+  position: {
+    anchor: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+    offset: Point2D; // Offset from anchor position
+  };
+  reinforcement?: {
+    thickness?: number; // Additional reinforcement rim thickness beyond socket size (default: 2mm for round, 1.5mm for square)
+    height?: number; // Additional reinforcement height beyond socket depth (default: 1mm)
   };
 }
 
 // Enclosure configuration
 export interface EnclosureConfig {
   plate: {
-    thickness: number;
+    topThickness: number; // Top switch mounting plate thickness
+    bottomThickness: number; // Bottom case floor thickness
   };
   walls: {
-    thickness: number;
-    top: {
-      height: number;
-    };
-    bottom: {
-      height: number;
-      thickness: number;
-    };
+    thickness: number; // Perimeter wall thickness
+    height: number; // Wall height extending down from top plate
   };
-  frame: {
-    wallThickness: number;
-    scaleFactor: number;
-  };
-  skin: {
-    reductionHeight: number;
-    thickness: number; // computed
-  };
-}
-
-// Mounting configuration
-export interface MountingConfig {
-  corner: {
-    radius: number;
-    insetDivisor: number;
-    offsetFactor: number;
-    rotations: readonly [number, number, number, number];
-    inset: number; // computed
-    offset: number; // computed
-    cutoutWidth: number; // computed
-    cutoutOffset: number; // computed
-  };
-  insert: {
-    height: number;
-    radius: number;
-    centerZ: number; // computed
-  };
-  screw: {
-    diameter: number;
-    radius: number;
-    head: {
-      radius: number;
-      height: number;
-    };
-  };
-}
-
-// Tolerances configuration
-export interface TolerancesConfig {
-  general: number;
-  extrusion: number;
-  generalHeight: number; // computed
-  extrusionHeight: number; // computed
-  doubleGeneralHeight: number; // computed
+  bottomPadsSockets?: SiliconPadSocket[]; // Optional silicon pad sockets for bottom plate
 }
 
 // Connector configuration
@@ -139,27 +104,14 @@ export interface OutputConfig {
   };
 }
 
-// Computed values
-export interface ComputedConfig {
-  manufacturingScaleMargin: number;
-  frameStructureHeight: number;
-  maximumKeySize: number;
-  cornerInset: number;
-  topWallCenterZ: number;
-  bottomWallCenterZ: number;
-}
-
 // Complete keyboard configuration interface
 export interface KeyboardConfig {
   layout: LayoutConfig;
   switch: SwitchConfig;
-  thumb: ThumbConfig;
+  thumb?: ThumbConfig;
   enclosure: EnclosureConfig;
-  mounting: MountingConfig;
-  tolerances: TolerancesConfig;
-  connectors: ConnectorConfig[];
+  connectors?: ConnectorConfig[];
   output: OutputConfig;
-  computed: ComputedConfig;
 }
 
 // Switch specification interface for switch definitions
@@ -167,8 +119,10 @@ export interface SwitchSpec {
   description: string;
   switch: {
     cutout: {
-      size: number;
-      thinZone: number;
+      inner: number;
+      outer: number;
+      height: number;
+      startHeight: number;
     };
     plate: {
       thickness: number;
@@ -177,7 +131,7 @@ export interface SwitchSpec {
   };
   layout: {
     matrix: {
-      pitch: number;
+      spacing: number;
     };
   };
 }
@@ -186,14 +140,55 @@ export interface SwitchSpec {
 export interface ConnectorSpec {
   description: string;
   geometry: {
-    type: 'pill' | 'circle';
+    type: 'pill' | 'circle' | 'square';
     radius?: number;
     circleRadius?: number;
     centerDistance?: number;
+    width?: number;
+    height?: number;
     depth?: number;
   };
 }
 
-// Forward declaration for BASE_PARAMETERS type
-// This will be properly typed when BASE_PARAMETERS is imported
-export type ParameterProfile = any; // Will be updated in config.ts
+// Parameter profile type for partial configuration overrides
+export interface ParameterProfile {
+  layout?: {
+    matrix?: {
+      rowLayout?: RowLayoutItem[];
+    };
+    edgeMargin?: number;
+    baseDegrees?: number;
+  };
+  switch?: {
+    type?: 'choc' | 'mx';
+  };
+  thumb?: {
+    cluster?: {
+      keys?: number;
+      spacing?: number;
+      rotation?: number;
+    };
+    offset?: Point2D;
+    perKey?: {
+      rotations?: number[];
+      offsets?: Point2D[];
+    };
+  };
+  enclosure?: {
+    plate?: {
+      topThickness?: number;
+      bottomThickness?: number;
+    };
+    walls?: {
+      thickness?: number;
+      height?: number;
+    };
+    bottomPadsSockets?: SiliconPadSocket[];
+  };
+  connectors?: ConnectorConfig[];
+  output?: {
+    openscad?: {
+      resolution?: number;
+    };
+  };
+}

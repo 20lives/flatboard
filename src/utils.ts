@@ -1,107 +1,134 @@
-/**
- * Utility functions shared across the keyboard generation system
- */
+import type { Point2D } from './interfaces.js';
+import { hull, circle } from 'scad-js';
+import * as A from 'fp-ts/Array';
+import * as O from 'fp-ts/Option';
+import * as E from 'fp-ts/Either';
+import { pipe } from 'fp-ts/function';
+import type { Predicate } from 'fp-ts/Predicate';
 
-import type { Point2D } from './config.js';
+const isPlainObject: Predicate<unknown> = (value: unknown): value is Record<string, unknown> =>
+  pipe(
+    value,
+    O.fromNullable,
+    O.filter((v): v is object => typeof v === 'object'),
+    O.map((v) => v.constructor === Object || v.constructor === undefined),
+    O.getOrElse(() => false),
+  );
 
-// ============================================================================
-// Configuration Utilities
-// ============================================================================
-
-/**
- * Checks if a value is a plain object (not an array, date, etc.)
- */
-export function isPlainObject(value: any): value is Record<string, any> {
-  if (value === null || typeof value !== 'object') {
-    return false;
-  }
-
-  // Check if it's a plain object (not an array, Date, etc.)
-  return value.constructor === Object || value.constructor === undefined;
-}
-
-/**
- * Deep merge utility for nested objects with proper type handling
- * Handles arrays, primitives, and nested objects correctly
- */
-export function deepMerge<T extends Record<string, any>>(base: T, override: any): T {
-  // If override is null, undefined, or not an object, return base
+export const deepMerge = <T extends Record<string, unknown>>(
+  base: T,
+  override: Partial<T> | null | undefined,
+): E.Either<string, T> => {
   if (!override || typeof override !== 'object') {
-    return base;
+    return E.right(base);
   }
 
-  // If base is null, undefined, or not an object, return override
   if (!base || typeof base !== 'object') {
-    return override as T;
+    return E.right(override as T);
   }
 
-  // Create a shallow copy of the base to avoid mutation
-  const result = { ...base };
+  return pipe(
+    Object.entries(override),
+    A.filter(([key]) => Object.hasOwn(override, key)),
+    A.traverse(E.Applicative)(([key, overrideValue]) => {
+      if (overrideValue === undefined) {
+        return E.right([key, undefined] as const);
+      }
 
-  // Iterate through all keys in the override object
-  for (const key in override) {
-    if (!Object.hasOwn(override, key)) continue;
+      if (overrideValue === null) {
+        return E.right([key, null] as const);
+      }
 
-    const baseValue = result[key as keyof T];
-    const overrideValue = override[key];
+      const baseValue = base[key as keyof T];
 
-    // If override value is undefined, skip it
-    if (overrideValue === undefined) {
-      continue;
-    }
+      if (isPlainObject(baseValue) && isPlainObject(overrideValue)) {
+        return pipe(
+          deepMerge(baseValue as Record<string, unknown>, overrideValue as Partial<Record<string, unknown>>),
+          E.map((merged) => [key, merged] as const),
+        );
+      }
 
-    // If override value is null, set it directly
-    if (overrideValue === null) {
-      result[key as keyof T] = overrideValue;
-      continue;
-    }
+      return E.right([key, overrideValue] as const);
+    }),
+    E.map((entries) => {
+      const result = { ...base };
+      for (const [key, value] of entries) {
+        if (value !== undefined) {
+          result[key as keyof T] = value as T[keyof T];
+        }
+      }
+      return result;
+    }),
+  );
+};
 
-    // If both values are plain objects, recursively merge them
-    if (isPlainObject(baseValue) && isPlainObject(overrideValue)) {
-      result[key as keyof T] = deepMerge(baseValue, overrideValue);
-    }
-    // For arrays, primitives, or any other types, override completely
-    else {
-      result[key as keyof T] = overrideValue;
-    }
-  }
+export const convertDegreesToRadians = (degrees: number): number => (Math.PI * degrees) / 180;
 
-  return result;
-}
+export const calculateAbsoluteCosineSine = (angle: number): number =>
+  Math.abs(Math.cos(angle)) + Math.abs(Math.sin(angle));
 
-// ============================================================================
-// Mathematical Utilities
-// ============================================================================
+export const calculateHalfIndex = (n: number): number => (n - 1) / 2;
 
-/**
- * Converts degrees to radians
- */
-export const convertDegreesToRadians = (degrees: number) => (Math.PI * degrees) / 180;
+export const rotatePoint = (point: Point2D, pivot: Point2D, degrees: number): Point2D =>
+  pipe(
+    degrees,
+    O.fromPredicate((deg) => deg !== 0),
+    O.fold(
+      () => point,
+      (deg) => {
+        const radians = convertDegreesToRadians(deg);
+        const cosValue = Math.cos(radians);
+        const sinValue = Math.sin(radians);
+        const deltaX = point.x - pivot.x;
+        const deltaY = point.y - pivot.y;
 
-/**
- * Calculates the absolute value of cosine plus sine for rotation extent calculations
- */
-export const calculateAbsoluteCosineSine = (angle: number) => Math.abs(Math.cos(angle)) + Math.abs(Math.sin(angle));
+        return {
+          x: pivot.x + cosValue * deltaX - sinValue * deltaY,
+          y: pivot.y + sinValue * deltaX + cosValue * deltaY,
+        };
+      },
+    ),
+  );
 
-/**
- * Calculates the half index for centering calculations
- */
-export const calculateHalfIndex = (n: number) => (n - 1) / 2;
+type RoundedSquareParams = {
+  width: number;
+  height: number;
+  cornerRadius?: number;
+};
 
-/**
- * Rotates a point around a pivot by the specified degrees
- */
-export function rotatePoint(point: Point2D, pivot: Point2D, degrees: number): Point2D {
-  if (!degrees) return point;
+const validateRoundedSquareParams = (
+  params: RoundedSquareParams,
+): E.Either<string, Required<RoundedSquareParams>> => {
+  const { width, height, cornerRadius = 1 } = params;
 
-  const radians = convertDegreesToRadians(degrees);
-  const cosValue = Math.cos(radians);
-  const sinValue = Math.sin(radians);
-  const deltaX = point.x - pivot.x;
-  const deltaY = point.y - pivot.y;
+  if (width <= 0) return E.left('Width must be positive');
+  if (height <= 0) return E.left('Height must be positive');
+  if (cornerRadius < 0) return E.left('Corner radius must be non-negative');
+  if (cornerRadius * 2 > width) return E.left('Corner radius too large for width');
+  if (cornerRadius * 2 > height) return E.left('Corner radius too large for height');
 
-  return {
-    x: pivot.x + cosValue * deltaX - sinValue * deltaY,
-    y: pivot.y + sinValue * deltaX + cosValue * deltaY,
-  };
-}
+  return E.right({ width, height, cornerRadius });
+};
+
+export const createRoundedSquare = (width: number, height: number, cornerRadius: number = 0.5) =>
+  pipe(
+    validateRoundedSquareParams({ width, height, cornerRadius }),
+    E.map(({ width, height, cornerRadius }) => {
+      const cornerCircle = circle(cornerRadius);
+      const innerWidth = width - 2 * cornerRadius;
+      const innerHeight = height - 2 * cornerRadius;
+      const halfWidth = innerWidth / 2;
+      const halfHeight = innerHeight / 2;
+
+      return hull(
+        cornerCircle.translate([halfWidth, halfHeight, 0]),
+        cornerCircle.translate([-halfWidth, halfHeight, 0]),
+        cornerCircle.translate([halfWidth, -halfHeight, 0]),
+        cornerCircle.translate([-halfWidth, -halfHeight, 0]),
+      );
+    }),
+    E.getOrElse((error) => {
+      console.warn(`createRoundedSquare validation error: ${error}`);
+      return circle(Math.min(width, height) / 2);
+    }),
+  );
