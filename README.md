@@ -2,12 +2,13 @@
 
 **Generate custom low-profile 3D-printable keyboards without CAD or programming knowledge.**
 
-A parametric keyboard case generator that creates production-ready STL files from simple configuration. Design split keyboards, macropads, or any custom layout you can imagine—all through TypeScript configuration files.
+A parametric keyboard case generator that creates production-ready STL files from simple configuration. Design split keyboards, macropads, full unibody or any custom layout you can imagine—all through TypeScript configuration files.
 
 ![split36 next to unibody36](pictures/1.jpg)
+*Split-36 keyboard next to a unibody-36 variant*
+
 ![split36 on top of a laptop keyboard](pictures/2.jpg)
-![split36 internals components wiring and soldering](pictures/3.jpg)
-![split36 with magnets attached to a modified phone holder as a tent solution](pictures/4.jpg)
+*Ultra-low-profile design sits comfortably on top of a laptop keyboard*
 
 ## Why flatboard?
 
@@ -15,6 +16,12 @@ A parametric keyboard case generator that creates production-ready STL files fro
 - 🎯 **No programming required** - Just edit configuration values in TypeScript files
 - 🖨️ **Direct STL output** - Generate print-ready files without running or even installing OpenSCAD
 - 🔧 **Fully parametric and Infinitely customizable** - Every dimension calculated from your configuration: Layouts, switches, connectors, sizes—everything is configurable
+
+![split36 internals components wiring and soldering](pictures/3.jpg)
+*Internal components: hand-wired matrix with electronics bay*
+
+![split36 with magnets attached to a modified phone holder as a tent solution](pictures/4.jpg)
+*Magnetic mounting system using phone holder for adjustable tenting*
 
 ## What You Can Configure
 
@@ -94,7 +101,6 @@ Full control over case dimensions:
 - Edge margins: extra spacing around the keys
 - Electronics cavity depth
 - Rubber feet / Magnets socket positions and custom size.
-- Corner mounting points
 
 ## Installation
 
@@ -332,11 +338,42 @@ connectors: [
 - **test-single-choc** - Single key test configuration
 
 
-## Printing
-- first print a single switch keyboard to see that your printer is tuned. make sure that the switch fit tight to the top part and the snap-fit enclosure works well.
+## Design & Print Tips
 
-## assembly
-- all electronics and parts should fit in the top part.
+### Before Your First Build
+
+**Start with a test print:**
+Print the `test-single-choc` / `test-single-mx` profile first to Verify your printer is properly tuned and check that switches fit snugly in the top plate.
+Test the snap-fit mechanism between top and bottom parts Ensure parts snap together securely without excessive force, use a plastic pry tool to reopen the case without damage.
+
+### Planning Your Layout
+
+**Electronics space:**
+- Leave adequate room for your microcontroller and battery (if used)
+- Consider the thickness of your wiring and components
+- Default cavity depth may need adjustment based on your electronics
+
+**Adjust dimensions if needed:**
+- Modify `walls.height` for more internal space
+- Add `layout.edgeMargin` to create more space around switches
+- This gives you extra room for routing wires and fitting components
+
+**Connector placement:**
+- Double-check connector positions don't interfere with:
+  - Switch positions
+  - Internal electronics
+  - Other wires routing paths
+- Use `build:dev` mode with OpenSCAD preview to verify clearances
+
+### Printing
+
+**Material:** whatever you want, probably PETG will be better choice for durability.
+**Supports:** The top part will need support for the switchs and the bottom part might need if you used rubber feet sockets.
+**Orientation:** the top part might be needed to be rotated 180 degrees.
+
+### Assembly
+
+All electronics and wiring fit in the top part of the case.
 
 ### File outputs
 - `top.scad` / `top.stl` - Top plate with switch mounting and electronics cavity.
