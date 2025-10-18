@@ -1,6 +1,6 @@
-import { cylinder, hull } from 'scad-js';
+import { cylinder, hull, cube } from 'scad-js';
 import { CONNECTOR_SPECS } from './config.js';
-import type { ConnectorConfig, KeyboardConfig } from './interfaces.js';
+import type { ConnectorConfig, ConnectorSpec, KeyboardConfig } from './interfaces.js';
 import * as A from 'fp-ts/Array';
 import { pipe } from 'fp-ts/function';
 
@@ -13,89 +13,108 @@ export function calculateConnectorPosition(
   connectorConfig: ConnectorConfig,
   config: KeyboardConfig,
 ): { x: number; y: number; z: number; rotation: [number, number, number] } {
-
   const { face, position } = connectorConfig;
-
   const { thickness: wallThickness, height: wallsHeight } = config.enclosure.walls;
-
   const { topThickness, bottomThickness } = config.enclosure.plate;
 
   const normalizedPosition = Math.max(0, Math.min(1, position));
 
-  const isTopBottom = ['top', 'bottom'].includes(face);
-
-  const totalWallLength = 2 * wallThickness + (isTopBottom ? plateWidth : plateHeight);
-
-  const rotation: [number, number, number] = [
-    0, 
-    0, 
-    { top: 0, bottom: 180, left: -90, right: 90 }[face] ?? 0,
-  ];
-
   const spec = CONNECTOR_SPECS[connectorConfig.type as keyof typeof CONNECTOR_SPECS];
-  const centerDistance = spec.geometry.centerDistance ?? 0;
-  const circleRadius = spec.geometry.circleRadius + connectorConfig.clearance;
+  const geometry = spec.geometry as ConnectorSpec['geometry'];
+  const centerDistance = geometry.centerDistance ?? 0;
+  const circleRadius = (geometry.circleRadius ?? geometry.radius ?? geometry.width ?? 0) + connectorConfig.clearance;
 
-  if (face == 'top') {
-    return {
-      x: centerDistance + wallThickness * 2 - offset + (plateWidth - centerDistance - 2 * circleRadius - wallThickness + offset + offset) * normalizedPosition,
-      y: wallThickness,
-      z: (wallsHeight + topThickness - bottomThickness) / 2,
-      rotation,
-    }
-  }
-  if (face == 'right') {
-    return {
-      x: plateWidth + wallThickness,
-      y: centerDistance + wallThickness * 2 - offset + (plateHeight - centerDistance - 2 * circleRadius - wallThickness + 2 * offset) * normalizedPosition,
-      z: (wallsHeight + topThickness - bottomThickness) / 2,
-      rotation,
-    }
+  const z = (wallsHeight + topThickness - bottomThickness) / 2;
 
-  }
-  if (face == 'bottom') {
-    return {
-      x: centerDistance + wallThickness * 2 - offset + (plateWidth - centerDistance - 2 * circleRadius - wallThickness + 2 * offset) * normalizedPosition - circleRadius / 2 - wallThickness,
-      y: plateHeight + wallThickness,
-      z: (wallsHeight + topThickness - bottomThickness) / 2,
-      rotation,
-    }
-
-  }
-  if (face == 'left') {
-    return {
+  // Coordinate system is rotated 90° clockwise: logical faces map differently
+  // User "bottom" → Physical "right", User "right" → Physical "bottom"
+  // User "left" → Physical "top", User "top" → Physical "left"
+  // Rotations also need -90° adjustment to compensate
+  const positionCalculators = {
+    top: () => ({
       x: wallThickness,
-      y: centerDistance + circleRadius / 2 - offset + (plateHeight - centerDistance - 2 * circleRadius - 2 * wallThickness + 2 * offset) * normalizedPosition,
-      z: (wallsHeight + topThickness - bottomThickness) / 2,
-      rotation,
-    }
+      y:
+        centerDistance +
+        circleRadius / 2 -
+        offset +
+        (plateHeight - centerDistance - 2 * circleRadius - 2 * wallThickness + 2 * offset) * normalizedPosition,
+      z,
+      rotation: [0, 0, -90] as [number, number, number],
+    }),
+    right: () => ({
+      x:
+        centerDistance +
+        wallThickness * 2 -
+        offset +
+        (plateWidth - centerDistance - 2 * circleRadius - wallThickness + offset + offset) * normalizedPosition,
+      y: wallThickness,
+      z,
+      rotation: [0, 0, 0] as [number, number, number],
+    }),
+    bottom: () => ({
+      x: plateWidth + wallThickness,
+      y:
+        centerDistance +
+        wallThickness * 2 -
+        offset +
+        (plateHeight - centerDistance - 2 * circleRadius - wallThickness + 2 * offset) * normalizedPosition,
+      z,
+      rotation: [0, 0, 90] as [number, number, number],
+    }),
+    left: () => ({
+      x:
+        centerDistance +
+        wallThickness * 2 -
+        offset +
+        (plateWidth - centerDistance - 2 * circleRadius - wallThickness + 2 * offset) * normalizedPosition -
+        circleRadius / 2 -
+        wallThickness,
+      y: plateHeight + wallThickness,
+      z,
+      rotation: [0, 0, 180] as [number, number, number],
+    }),
+  };
 
-  }
+  return positionCalculators[face]();
 }
 
 export function createConnectorCutout(connectorConfig: ConnectorConfig, globalConfig: KeyboardConfig) {
   const spec = CONNECTOR_SPECS[connectorConfig.type as keyof typeof CONNECTOR_SPECS];
+  const geometry = spec.geometry as ConnectorSpec['geometry'];
   const { thickness } = globalConfig.enclosure.walls;
 
-  if (spec.geometry.type === 'pill') {
-    const circleRadius = spec.geometry.circleRadius + connectorConfig.clearance;
-    const centerDistance = spec.geometry.centerDistance;
+  const geometryCreators = {
+    pill: () => {
+      const circleRadius = (geometry.circleRadius ?? 0) + connectorConfig.clearance;
+      const centerDistance = geometry.centerDistance ?? 0;
+      const circle = cylinder(thickness + 0.1, circleRadius).rotate_x(90);
 
-    const circle = cylinder(thickness + 0.1, circleRadius).rotate([90, 0, 0]);
+      return hull(circle.translate_x(centerDistance), circle).translate([
+        circleRadius - centerDistance,
+        -thickness / 2,
+        0,
+      ]);
+    },
+    circle: () => {
+      const radius = (geometry.radius ?? 0) + connectorConfig.clearance;
+      return cylinder(thickness + 0.1, radius)
+        .rotate_x(90)
+        .translate_y(-thickness / 2);
+    },
+    square: () => {
+      const width = (geometry.width ?? 0) + connectorConfig.clearance * 2;
+      const height = (geometry.height ?? 0) + connectorConfig.clearance * 2;
+      return cube([width, thickness + 0.1, height]).translate([thickness * 2, -thickness / 2, 0]);
+    },
+  };
 
-    return hull(
-      circle.translate([centerDistance , 0, 0]),
-      circle,
-    ).translate([circleRadius - centerDistance, -thickness / 2 , 0]);
+  const creator = geometryCreators[spec.geometry.type as keyof typeof geometryCreators];
+
+  if (!creator) {
+    throw new Error(`Unknown connector geometry type: ${spec.geometry.type}`);
   }
 
-  if (spec.geometry.type === 'circle') {
-    const radius = spec.geometry.radius + connectorConfig.clearance;
-
-    return cylinder(thickness + 0.0, radius).rotate([90, 0, 0]).translate([0, -thickness / 2 + 0.00, 0]);
-  }
-
-  throw new Error(`Unknown connector geometry type: ${(spec.geometry as any).type}`);
+  return creator();
 }
 
 function createConnector(
@@ -109,10 +128,11 @@ function createConnector(
     return null;
   }
 
-  const position = calculateConnectorPosition( plateWidth, plateHeight, offset, connectorConfig, globalConfig);
+  const position = calculateConnectorPosition(plateWidth, plateHeight, offset, connectorConfig, globalConfig);
 
   return createConnectorCutout(connectorConfig, globalConfig)
-    .rotate(position.rotation).translate([position.x, position.y, position.z]);
+    .rotate(position.rotation)
+    .translate([position.x, position.y, position.z]);
 }
 
 export function createAllConnectors(plateWidth: number, plateHeight: number, offset: number, config: KeyboardConfig) {
