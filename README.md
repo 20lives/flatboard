@@ -397,6 +397,18 @@ bun run help                    # Show help
 bun run clean                   # Remove generated files
 ```
 
+## Planned Features
+
+Upcoming enhancements planned for future releases:
+
+- **Web UI** - Browser-based visual configurator for designing keyboards without editing code
+- **Multi-row thumb clusters** - Support for complex thumb layouts with multiple rows
+- **Patterned bottom** - Honeycomb or lattice patterns for weight reduction and material optimization
+- **Non-rectangular enclosures** - Organic and curved case shapes beyond rectangular boxes
+- **Trackpad/trackpoint support** - Integrated pointing device mounting and cutouts
+
+Have a feature request? Open an issue on GitHub!
+
 ## Contributing
 
 Add your keyboard profiles! Create a `.ts` file in `profiles/` and submit a PR.
