@@ -23,12 +23,8 @@ export interface MatrixConfig {
 // Layout configuration
 export interface LayoutConfig {
   matrix: MatrixConfig;
-  spacing: {
-    edgeMargin: number;
-  };
-  rotation: {
-    baseDegrees: number;
-  };
+  edgeMargin: number;
+  baseDegrees: number;
 }
 
 // Switch configuration
@@ -60,26 +56,36 @@ export interface ThumbConfig {
   };
 }
 
-// Enclosure configuration
-export interface EnclosureConfig {
-  plate: {
-    topThickness: number;       // Top switch mounting plate thickness
-    bottomThickness: number;    // Bottom case floor thickness
+// Silicon pad socket configuration
+export interface SiliconPadSocket {
+  shape: 'round' | 'square';
+  size: {
+    radius?: number; // For round sockets
+    width?: number; // For square sockets
+    height?: number; // For square sockets
   };
-  walls: {
-    thickness: number;          // Perimeter wall thickness
-    height: number;             // Wall height extending down from top plate
+  depth: number; // Socket depth into bottom plate
+  position: {
+    anchor: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+    offset: Point2D; // Offset from anchor position
+  };
+  reinforcement?: {
+    thickness?: number; // Additional reinforcement rim thickness beyond socket size (default: 2mm for round, 1.5mm for square)
+    height?: number; // Additional reinforcement height beyond socket depth (default: 1mm)
   };
 }
 
-
-// Tolerances configuration
-export interface TolerancesConfig {
-  general: number;
-  extrusion: number;
-  generalHeight: number; // computed
-  extrusionHeight: number; // computed
-  doubleGeneralHeight: number; // computed
+// Enclosure configuration
+export interface EnclosureConfig {
+  plate: {
+    topThickness: number; // Top switch mounting plate thickness
+    bottomThickness: number; // Bottom case floor thickness
+  };
+  walls: {
+    thickness: number; // Perimeter wall thickness
+    height: number; // Wall height extending down from top plate
+  };
+  bottomPadsSockets?: SiliconPadSocket[]; // Optional silicon pad sockets for bottom plate
 }
 
 // Connector configuration
@@ -102,10 +108,9 @@ export interface OutputConfig {
 export interface KeyboardConfig {
   layout: LayoutConfig;
   switch: SwitchConfig;
-  thumb: ThumbConfig;
+  thumb?: ThumbConfig;
   enclosure: EnclosureConfig;
-  tolerances: TolerancesConfig;
-  connectors: ConnectorConfig[];
+  connectors?: ConnectorConfig[];
   output: OutputConfig;
 }
 
@@ -135,10 +140,12 @@ export interface SwitchSpec {
 export interface ConnectorSpec {
   description: string;
   geometry: {
-    type: 'pill' | 'circle';
+    type: 'pill' | 'circle' | 'square';
     radius?: number;
     circleRadius?: number;
     centerDistance?: number;
+    width?: number;
+    height?: number;
     depth?: number;
   };
 }
@@ -148,14 +155,9 @@ export interface ParameterProfile {
   layout?: {
     matrix?: {
       rowLayout?: RowLayoutItem[];
-      spacing?: number;
     };
-    spacing?: {
-      edgeMargin?: number;
-    };
-    rotation?: {
-      baseDegrees?: number;
-    };
+    edgeMargin?: number;
+    baseDegrees?: number;
   };
   switch?: {
     type?: 'choc' | 'mx';
@@ -181,10 +183,7 @@ export interface ParameterProfile {
       thickness?: number;
       height?: number;
     };
-  };
-  tolerances?: {
-    general?: number;
-    extrusion?: number;
+    bottomPadsSockets?: SiliconPadSocket[];
   };
   connectors?: ConnectorConfig[];
   output?: {
