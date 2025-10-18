@@ -1,17 +1,102 @@
 # flatboard
 
-Generate 3D-printable split keyboard cases from TypeScript configuration files.
+**Generate custom low-profile 3D-printable keyboards without CAD or programming knowledge.**
 
-## What it does
+A parametric keyboard case generator that creates production-ready STL files from simple configuration. Design split keyboards, macropads, or any custom layout you can imagine—all through TypeScript configuration files.
 
-Takes keyboard layout parameters and outputs OpenSCAD files for:
-- Top plate with switch cutouts and mounting points
-- Bottom case with electronics cavity
-- Complete assembly preview
+![split36 next to unibody36](pictures/1.jpg)
+![split36 on top of a laptop keyboard](pictures/2.jpg)
+![split36 internals components wiring and soldering](pictures/3.jpg)
+![split36 with magnets attached to a modified phone holder as a tent solution](pictures/4.jpg)
 
-Supports Choc and MX switches, configurable connectors (USB-C, TRRS), and arbitrary row layouts.
+## Why flatboard?
 
-## Install
+- ⚡ **No CAD software needed** - Define your keyboard with parameters, not 3D modeling
+- 🎯 **No programming required** - Just edit configuration values in TypeScript files
+- 🖨️ **Direct STL output** - Generate print-ready files without running or even installing OpenSCAD
+- 🔧 **Fully parametric and Infinitely customizable** - Every dimension calculated from your configuration: Layouts, switches, connectors, sizes—everything is configurable
+
+## What You Can Configure
+
+### Switch Types
+
+Built-in support for popular mechanical switches:
+- **Kailh Choc** - Low-profile switches
+- **Cherry MX** - Standard mechanical switches
+
+**Add custom switch types** by defining specifications in `src/switches.ts`:
+```typescript
+mySwitch: {
+  description: 'My Custom Switch',
+  switch: {
+    cutout: { height: 1.5, inner: 13.8, outer: 15.0 },
+    plate: { thickness: 1.6, totalThickness: 8.0 }
+  },
+  layout: { matrix: { spacing: 19.0 } }
+}
+```
+
+### Connectors
+
+Built-in connector types:
+- **USB-C** - Pill-shaped female socket
+- **TRRS** - 3.5mm audio jack (for split keyboards)
+- **Power Button** - Generic circular button
+
+**Create custom connectors** with any shape:
+- `circle` - Simple circular cutout (specify radius)
+- `pill` - Rounded rectangle (specify circle radius + distance)
+- `square` - Rectangular cutout (coming soon)
+
+Connectors can be placed on any face (top, bottom, left, right) with precise positioning (0-1 along edge).
+
+Example custom connector:
+```typescript
+myConnector: {
+  description: 'My Custom Port',
+  geometry: {
+    type: 'circle',
+    radius: 4.0
+  }
+}
+```
+
+### Layout System
+
+**Fully flexible row-based layouts** with per-row control:
+
+```typescript
+rowLayout: [
+  { start: 0, length: 6, offset: 0 },    // 6 keys starting at column 0
+  { start: -1, length: 6, offset: 2 },   // 6 keys starting at column -1, 2mm stagger
+  { start: 0, length: 5, offset: 5 },    // 5 keys starting at column 0, 5mm stagger
+]
+```
+
+- **`start`** - Starting column position (can be negative for left offset)
+- **`length`** - Number of keys in the row
+- **`offset`** - Column stagger in millimeters
+
+
+**Optional Thumb clusters** with independent control:
+- Number of keys
+- Spacing between keys
+- Rotation angle
+- Offset position
+- Per-key rotation and offsets
+
+**Split keyboard support** with automatic mirroring for left/right halves.
+
+### Enclosure
+Snap-fit rounded corners enclosure with no need for screws.
+Full control over case dimensions:
+- Plate thickness (top and bottom and walls)
+- Edge margins: extra spacing around the keys
+- Electronics cavity depth
+- Rubber feet / Magnets socket positions and custom size.
+- Corner mounting points
+
+## Installation
 
 ```bash
 git clone git@github.com:20lives/flatboard.git
@@ -19,35 +104,91 @@ cd flatboard
 bun install
 ```
 
-## Usage
+## Quick Start
 
-Build the default profile:
-```bash
-bun run build
-```
+### 1. List available keyboards
 
-List available profiles:
 ```bash
 bun run list
 ```
 
-Build a specific profile:
-```bash
-bun run build -- ortho-36-mx
+Output:
+```
+Available keyboard profiles:
+  • macropad-3x3: 9 keys {0:3,0:3,0:3} [choc]
+  • split-36: 18 keys {0:3,0:3,0:3,0:3,0:3} + 3 thumbs [choc]
+  • test-single-choc: 1 keys {0:1} [choc]
 ```
 
-Output files go to `dist/`:
-- `top.scad` - top plate
-- `bottom.scad` - bottom case
-- `complete.scad` - assembled view
+### 2. Build a keyboard
+
+```bash
+bun run build -- split-36
+```
+
+Output:
+```
+Generated files for profile: split-36
+  • Keyboard size: 18 keys
+  • Plate dimensions: 123.5×114.2mm
+
+./dist/split-36-w92ivk/
+├── bottom.scad (7.9K)
+├── complete.scad (50.7K)
+└── top.scad (38.2K)
+```
+
+### 3. Generate STL files (3D printing ready)
+
+```bash
+bun run build:stl -- split-36
+```
+
+Output:
+```
+./dist/split-36-w92ivk/
+├── bottom.scad (7.9K)
+├── bottom.stl (52.8K)    ← Ready to print!
+├── complete.scad (5.9K)
+├── complete.stl (49.6K)
+├── top.scad (3.5K)
+└── top.stl (50.5K)        ← Ready to print!
+```
+
+## Build Modes
+
+### Production Build
+```bash
+bun run build -- <profile>
+```
+- Outputs to `dist/<profile>-<hash>/`
+- Generates SCAD files only
+- Each build preserved with unique timestamp
+- Fast iteration for design changes
+
+### STL Build
+```bash
+bun run build:stl -- <profile>
+```
+- Outputs to `dist/<profile>-<hash>/`
+- Generates both SCAD and STL files
+- Uses OpenSCAD renderer internally
+- Ready for 3D printing
+
+### Development Mode
+```bash
+bun run build:dev -- <profile>
+```
+- Outputs to `dist/` (overwrites)
+- Watch mode: rebuilds on file changes
+- Open `dist/top.scad` / `dist/bottom.scad` / `dist/complete.scad` in OpenSCAD for live preview
+- Perfect for rapid iteration
 
 ## Creating Your Own Keyboard
 
-Profiles are stored in the `profiles/` directory. Each keyboard has its own file.
+### Step 1: Create a profile file
 
-### Quick Start
-
-Create a new file in `profiles/` (e.g., `profiles/my-layout.ts`):
+Create `profiles/my-keyboard.ts`:
 
 ```typescript
 import type { ParameterProfile } from '../src/interfaces.js';
@@ -61,74 +202,166 @@ export const profile: ParameterProfile = {
         { start: 0, length: 4, offset: 5 },
       ],
     },
-    edgeMargin: 8.0,
-    baseDegrees: 10.0,
+    edgeMargin: 8.0,      // Space around keys
+    baseDegrees: 10.0,    // Overall rotation
   },
+
   switch: {
-    type: 'choc',
+    type: 'choc',         // or 'mx'
   },
+
   thumb: {
     cluster: {
-      keys: 3,
-      spacing: 20.0,
-      rotation: 15.0,
+      keys: 3,            // Number of thumb keys
+      spacing: 20.0,      // Space between thumb keys
+      rotation: 15.0,     // Thumb cluster angle
     },
     offset: {
-      x: 25,
-      y: 2,
+      x: 25,              // Horizontal position
+      y: 2,               // Vertical position
     },
   },
+
   connectors: [
     {
       type: 'usbC',
-      face: 'top',
-      position: 0.5,
+      face: 'top',        // top, bottom, left, or right
+      position: 0.5,      // 0-1 along the edge
       enabled: true,
       clearance: 0.2,
     },
   ],
+
+  enclosure: {
+    plate: {
+      topThickness: 1.5,
+      bottomThickness: 1.5,
+    },
+    walls: {
+      thickness: 1.5,
+      height: 9.0,
+    },
+  },
 };
 ```
 
-Build it:
+### Step 2: Build it
 
 ```bash
-bun run build -- my-layout
+bun run build:dev -- my-keyboard
 ```
 
-### Row layout system
+## Advanced Customization
 
-Each row is defined by three parameters:
-- `start` - starting column position (can be negative)
-- `length` - number of keys in the row
-- `offset` - column stagger in millimeters
+### Per-key Thumb Rotation
 
-### Connectors
+```typescript
+thumb: {
+  cluster: {
+    keys: 3,
+    spacing: 20.0,
+    rotation: 15.0,
+  },
+  perKey: {
+    rotations: [-10, 0, 10],    // Individual key angles
+    offsets: [
+      { x: 2, y: 0 },            // Fine-tune each key position
+      { x: 0, y: 0 },
+      { x: 2, y: 0 },
+    ],
+  },
+}
+```
 
-Connector `face` can be `top`, `bottom`, `left`, or `right`. The `position` parameter (0-1) determines placement along that edge.
+### Rubber Feet Sockets
 
-Available connector types are defined in `src/connector-specs.ts`.
+Add reinforced sockets for silicon rubber feet:
 
-## Included profiles
+```typescript
+enclosure: {
+  bottomPadsSockets: [
+    {
+      shape: 'round',              // or 'square'
+      size: { radius: 5.05 },
+      depth: 1.1,
+      position: {
+        anchor: 'bottom-left',     // corner anchor
+        offset: { x: 0, y: 0 }     // fine adjustment
+      },
+      reinforcement: {
+        thickness: 1,
+        height: 0.2
+      },
+    },
+  ],
+}
+```
 
-- `split-36` - 36-key split (15 + 3 thumb per hand), Choc switches
-- `macropad-3x3` - 9-key macropad (3×3 grid), Choc switches
-- `test-single-choc` - Single key test configuration
+### Multiple Connectors
 
-## Technical notes
+```typescript
+connectors: [
+  {
+    type: 'usbC',
+    face: 'left',
+    position: 0.8,
+    enabled: true,
+    clearance: 0.2,
+  },
+  {
+    type: 'trrs',
+    face: 'right',
+    position: 0.3,
+    enabled: true,
+    clearance: 0.2,
+  },
+  {
+    type: 'powerButton',
+    face: 'top',
+    position: 0.1,
+    enabled: true,
+    clearance: 0.2,
+  },
+]
+```
 
-Built with:
-- TypeScript for configuration and logic
-- scad-js for OpenSCAD generation
-- fp-ts for functional patterns
-- Bun as runtime
+## Included Profiles
 
-The coordinate system is rotated 90° clockwise relative to OpenSCAD's default axes. Connector face mapping accounts for this.
+- **split-36** - 36-key split ergonomic keyboard (15 + 3 thumb per hand)
+- **macropad-3x3** - 9-key macropad (3×3 grid)
+- **test-single-choc** - Single key test configuration
 
-## Assembly
 
-Files are designed for FDM printing without supports. The top and bottom pieces use M3 heat inserts and screws for assembly.
+## Printing
+- first print a single switch keyboard to see that your printer is tuned. make sure that the switch fit tight to the top part and the snap-fit enclosure works well.
 
-## License
+## assembly
+- all electronics and parts should fit in the top part.
 
-MIT
+### File outputs
+- `top.scad` / `top.stl` - Top plate with switch mounting and electronics cavity.
+- `bottom.scad` / `bottom.stl` - Bottom case with 
+- `complete.scad` / `complete.stl` - Assembled keyboard for preview
+
+## Technical Stack
+- **TypeScript** - Configuration and logic
+- **scad-js** - OpenSCAD code generation
+- **fp-ts** - Functional programming patterns
+- **Bun** - Fast runtime and build system
+
+## Commands Reference
+
+```bash
+bun run build -- <profile>      # Generate SCAD files
+bun run build:dev -- <profile>  # Watch mode (live preview)
+bun run build:stl -- <profile>  # Generate STL files (3D printing)
+bun run list                    # List all keyboards
+bun run help                    # Show help
+bun run clean                   # Remove generated files
+```
+
+## Contributing
+
+Add your keyboard profiles! Create a `.ts` file in `profiles/` and submit a PR.
+
+For custom switch types or connectors, add them to `src/switches.ts` or `src/connector-specs.ts`.
