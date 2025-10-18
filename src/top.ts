@@ -1,8 +1,57 @@
-import { difference, union } from 'scad-js';
+import { difference, union, type ScadObject } from 'scad-js';
 import type { KeyboardConfig, KeyPlacement, Point2D } from './interfaces.js';
 import { createAllConnectors } from './connector.js';
 import { createAllSwitchCutouts } from './switch-sockets.js';
 import { createRoundedSquare } from './utils.js';
+import { pipe } from 'fp-ts/function';
+import * as A from 'fp-ts/Array';
+
+const createOuterWallBox = (
+  outerWidth: number,
+  outerHeight: number,
+  plateWidth: number,
+  plateHeight: number,
+  totalHeight: number,
+  plateThickness: number,
+) => {
+  const outerSquare = createRoundedSquare(outerWidth, outerHeight);
+  const baseSquare = createRoundedSquare(plateWidth, plateHeight);
+
+  return difference(
+    outerSquare.linear_extrude(totalHeight),
+    baseSquare.linear_extrude(totalHeight - plateThickness + 0.1).translate_z(-0.1),
+  ).translate([outerWidth / 2, outerHeight / 2, 0]);
+};
+
+const createSwitchCutouts = (keyPlacements: KeyPlacement[], size: number, height: number, zOffset: number) =>
+  union(...createAllSwitchCutouts(keyPlacements, size, height + 0.1)).translate_z(zOffset);
+
+const createSwitchFrame = (
+  keyPlacements: KeyPlacement[],
+  innerSize: number,
+  frameThickness: number,
+  height: number,
+  zOffset: number,
+) =>
+  difference(
+    union(...createAllSwitchCutouts(keyPlacements, innerSize + frameThickness, height)),
+    union(...createAllSwitchCutouts(keyPlacements, innerSize, height + 0.1)).translate_z(-0.05),
+  ).translate_z(zOffset);
+
+const createConnectorCutouts = (
+  plateWidth: number,
+  plateHeight: number,
+  plateOffset: Point2D,
+  config: KeyboardConfig,
+) => {
+  const allConnectors = createAllConnectors(plateWidth, plateHeight, 0, config);
+  const enabledConnectors = pipe(
+    allConnectors,
+    A.filter((c): c is ScadObject => c !== null),
+  );
+
+  return enabledConnectors.length > 0 ? union(...enabledConnectors).translate([plateOffset.x, plateOffset.y, 0]) : null;
+};
 
 export function generateKeyboardPlate(
   keyPlacements: KeyPlacement[],
@@ -11,56 +60,25 @@ export function generateKeyboardPlate(
   plateOffset: Point2D,
   config: KeyboardConfig,
 ) {
-  const wallThickness = config.enclosure.walls.thickness;
-  const topWallHeight = config.enclosure.walls.height;
+  const { thickness: wallThickness, height: topWallHeight } = config.enclosure.walls;
   const plateThickness = config.enclosure.plate.topThickness;
-  const totalHeight = plateThickness + topWallHeight;
+  const { outer, inner, height, startHeight } = config.switch.cutout;
 
+  const totalHeight = plateThickness + topWallHeight;
   const outerWidth = plateWidth + 2 * wallThickness;
   const outerHeight = plateHeight + 2 * wallThickness;
 
-  const outerSquare = createRoundedSquare(outerWidth, outerHeight);
-  const baseSquare = createRoundedSquare(plateWidth, plateHeight);
+  const wallBox = createOuterWallBox(outerWidth, outerHeight, plateWidth, plateHeight, totalHeight, plateThickness);
 
-  const { outer, inner, height, startHeight } = config.switch.cutout;
+  const switchCutouts = createSwitchCutouts(keyPlacements, outer, plateThickness, topWallHeight - 0.05);
 
-  let topBox = difference(
-    outerSquare.linear_extrude(totalHeight),
-    baseSquare.linear_extrude(totalHeight - plateThickness + 0.1).translate([0, 0, -0.1]),
-  ).translate([outerWidth / 2, outerHeight / 2, 0]);
+  const switchFrame = createSwitchFrame(keyPlacements, inner, 2.6, height, topWallHeight - startHeight);
 
-  const switchCutouts = union(...createAllSwitchCutouts(keyPlacements, outer, plateThickness + 0.1))
-    .translate([0, 0, topWallHeight - 0.05]);
+  const reinforcementFrame = createSwitchFrame(keyPlacements, outer, 3, height + 2.55, topWallHeight - 2.55 - 0.05);
 
-  const switchFrame = difference(
-    union(...createAllSwitchCutouts(keyPlacements, inner + 2.6, height + 0.0)),
-    union(...createAllSwitchCutouts(keyPlacements, inner + 0.0, height + 0.1))
-      .translate([0, 0, -0.05]),
-  ).translate([0, 0, topWallHeight - startHeight]);
+  const connectorCutouts = createConnectorCutouts(plateWidth, plateHeight, plateOffset, config);
 
-  const switchReinforcementFrame = difference(
-    union(...createAllSwitchCutouts(keyPlacements, outer + 3, height + 2.55 + 0.0)),
-    union(...createAllSwitchCutouts(keyPlacements, outer + 0, height + 2.55 + 0.1))
-      .translate([0, 0, -0.05]),
-  ).translate([0, 0, topWallHeight - 2.55 - 0.05]);
-
-  const plateWithWalls = union(
-    difference(topBox, switchCutouts),
-    switchFrame,
-    switchReinforcementFrame
+  return pipe(union(difference(wallBox, switchCutouts), switchFrame, reinforcementFrame), (geometry) =>
+    connectorCutouts ? difference(geometry, connectorCutouts) : geometry,
   );
-
-  const offset = 0;
-
-  console.log('top width:', plateWidth);
-  
-  const connectorCutouts = createAllConnectors(plateWidth, plateHeight, offset, config);
-
-  if (connectorCutouts.length > 0) {
-    const translatedCutouts = union(...connectorCutouts)
-      .translate([plateOffset.x, plateOffset.y, 0]);
-    return difference(plateWithWalls, translatedCutouts);
-  }
-  
-  return plateWithWalls;
 }

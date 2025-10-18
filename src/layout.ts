@@ -10,16 +10,22 @@ function calculateKeyBounds(keyPlacements: KeyPlacement[], maxKeySize: number) {
     A.map(({ pos, rot }) => {
       const normalizedAngle = convertDegreesToRadians(((rot % 360) + 360) % 360);
       const rotationExtent = 0.5 * calculateAbsoluteCosineSine(normalizedAngle) * maxKeySize;
-      
+
       return {
         xBounds: [pos.x - rotationExtent, pos.x + rotationExtent],
         yBounds: [pos.y - rotationExtent, pos.y + rotationExtent],
       };
-    })
+    }),
   );
 
-  const xCoordinates = pipe(coordinatePairs, A.chain(({ xBounds }) => xBounds));
-  const yCoordinates = pipe(coordinatePairs, A.chain(({ yBounds }) => yBounds));
+  const xCoordinates = pipe(
+    coordinatePairs,
+    A.chain(({ xBounds }) => xBounds),
+  );
+  const yCoordinates = pipe(
+    coordinatePairs,
+    A.chain(({ yBounds }) => yBounds),
+  );
 
   return {
     minX: Math.min(...xCoordinates),
@@ -31,16 +37,16 @@ function calculateKeyBounds(keyPlacements: KeyPlacement[], maxKeySize: number) {
 
 // Helper functions for pure functional approach
 const createMatrixKey = (
-  rowIndex: number, 
-  keyIndex: number, 
+  rowIndex: number,
+  keyIndex: number,
   row: { start: number; length: number; offset?: number },
-  matrixSpacing: number
+  matrixSpacing: number,
 ): KeyPlacement => ({
   pos: {
     x: (row.start + keyIndex) * matrixSpacing + (row.offset ?? 0),
-    y: rowIndex * matrixSpacing
+    y: rowIndex * matrixSpacing,
   },
-  rot: 0
+  rot: 0,
 });
 
 const createThumbKey = (
@@ -49,11 +55,11 @@ const createThumbKey = (
   thumbSpacing: number,
   thumbCenterOffset: number,
   clusterRotation: number,
-  perKeyConfig?: { rotations?: number[]; offsets?: { x: number; y: number }[] }
+  perKeyConfig?: { rotations?: number[]; offsets?: { x: number; y: number }[] },
 ): KeyPlacement => {
   const gridPosition = { x: 0, y: (thumbCenterOffset - thumbIndex) * thumbSpacing };
   const perKeyOffset = perKeyConfig?.offsets?.[thumbIndex] ?? { x: 0, y: 0 };
-  
+
   const preRotationPosition = {
     x: thumbAnchorPosition.x + gridPosition.x + perKeyOffset.x,
     y: thumbAnchorPosition.y + gridPosition.y + perKeyOffset.y,
@@ -73,67 +79,68 @@ function buildLayout(config: KeyboardConfig): KeyPlacement[] {
   }
 
   const matrixSpacing = config.layout.matrix.spacing;
-  const baseThumbAnchor = { x: config.thumb.offset.x, y: config.thumb.offset.y };
 
-  // Build matrix keys using functional approach
   const matrixKeysWithAnchor = pipe(
     rowLayout,
-    A.mapWithIndex((rowIndex, row) => row ? O.some({ row, rowIndex }) : O.none),
+    A.mapWithIndex((rowIndex, row) => (row ? O.some({ row, rowIndex }) : O.none)),
     A.compact,
-    A.chain(({ row, rowIndex }) => 
+    A.chain(({ row, rowIndex }) =>
       pipe(
         A.makeBy(row.length, (keyIndex) => ({
           key: createMatrixKey(rowIndex, keyIndex, row, matrixSpacing),
           isAnchor: row.thumbAnchor === row.start + keyIndex,
           anchorOffset: {
             x: (row.start + keyIndex) * matrixSpacing + (row.offset ?? 0),
-            y: rowIndex * matrixSpacing
-          }
-        }))
-      )
-    )
+            y: rowIndex * matrixSpacing,
+          },
+        })),
+      ),
+    ),
   );
 
-  // Calculate thumb anchor position functionally
+  if (!config.thumb?.cluster?.keys || config.thumb.cluster.keys === 0) {
+    return pipe(
+      matrixKeysWithAnchor,
+      A.map(({ key }) => key),
+    );
+  }
+
+  const baseThumbAnchor = { x: config.thumb.offset?.x ?? 0, y: config.thumb.offset?.y ?? 0 };
+
   const thumbAnchorOffset = pipe(
     matrixKeysWithAnchor,
     A.filter(({ isAnchor }) => isAnchor),
     A.reduce({ x: 0, y: 0 }, (acc, { anchorOffset }) => ({
       x: acc.x + anchorOffset.x,
-      y: acc.y + anchorOffset.y
-    }))
+      y: acc.y + anchorOffset.y,
+    })),
   );
 
   const thumbAnchorPosition = {
     x: baseThumbAnchor.x + thumbAnchorOffset.x,
-    y: baseThumbAnchor.y + thumbAnchorOffset.y
+    y: baseThumbAnchor.y + thumbAnchorOffset.y,
   };
 
-  // Build thumb cluster functionally
   const { spacing: thumbSpacing = 18, rotation: clusterRotation = 0, keys: thumbKeyCount } = config.thumb.cluster;
   const thumbCenterOffset = calculateHalfIndex(thumbKeyCount);
   const perKeyConfig = config.thumb.perKey;
 
   const thumbKeys = pipe(
     A.makeBy(thumbKeyCount, (thumbIndex) => thumbIndex),
-    A.map(thumbIndex =>
-      createThumbKey(thumbIndex, thumbAnchorPosition, thumbSpacing, thumbCenterOffset, clusterRotation, perKeyConfig)
-    )
-  );
-
-  const matrixKeys = pipe(
-    matrixKeysWithAnchor,
-    A.map(({ key }) => key)
+    A.map((thumbIndex) =>
+      createThumbKey(thumbIndex, thumbAnchorPosition, thumbSpacing, thumbCenterOffset, clusterRotation, perKeyConfig),
+    ),
   );
 
   return pipe(
-    matrixKeys,
-    A.concat(thumbKeys)
+    matrixKeysWithAnchor,
+    A.map(({ key }) => key),
+    A.concat(thumbKeys),
   );
 }
 
 function applyGlobalRotation(keyPlacements: KeyPlacement[], config: KeyboardConfig): KeyPlacement[] {
-  const { baseDegrees } = config.layout.rotation;
+  const { baseDegrees } = config.layout;
   if (!baseDegrees) return keyPlacements;
 
   const origin = { x: 0, y: 0 };
@@ -146,24 +153,24 @@ function applyGlobalRotation(keyPlacements: KeyPlacement[], config: KeyboardConf
 export function getLayout(config: KeyboardConfig): KeyPlacement[] {
   const rotatedKeys = applyGlobalRotation(buildLayout(config), config);
   const bounds = calculateKeyBounds(rotatedKeys, config.switch.cutout.outer);
-  const { edgeMargin } = config.layout.spacing;
+  const { edgeMargin } = config.layout;
   const wallThickness = config.enclosure.walls.thickness;
-  
+
   const offsetX = -bounds.minX + edgeMargin + wallThickness;
   const offsetY = -bounds.minY + edgeMargin + wallThickness;
 
   return rotatedKeys.map(({ rot, pos }) => ({
     rot,
-    pos: { 
-      x: pos.x + offsetX, 
-      y: pos.y + offsetY 
+    pos: {
+      x: pos.x + offsetX,
+      y: pos.y + offsetY,
     },
   }));
 }
 
 export function calculatePlateDimensions(keyPlacements: KeyPlacement[], config: KeyboardConfig) {
   const bounds = calculateKeyBounds(keyPlacements, config.switch.cutout.outer);
-  const { edgeMargin } = config.layout.spacing;
+  const { edgeMargin } = config.layout;
 
   return {
     plateWidth: bounds.maxX - bounds.minX + 2 * edgeMargin,

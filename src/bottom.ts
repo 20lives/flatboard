@@ -1,10 +1,11 @@
-import { difference, union, hull } from 'scad-js';
+import { difference, union, hull, type ScadObject } from 'scad-js';
 import type { KeyboardConfig } from './interfaces.js';
 import { createRoundedSquare } from './utils.js';
 import { createAllConnectors } from './connector.js';
+import { createSiliconPadSocketStructures } from './bottom-pads-sockets.js';
 
-import * as A from "fp-ts/Array";
-import { pipe } from "fp-ts/function";
+import * as A from 'fp-ts/Array';
+import { pipe } from 'fp-ts/function';
 
 const createConnectorCutouts = (
   plateWidth: number,
@@ -13,26 +14,35 @@ const createConnectorCutouts = (
   wallThickness: number,
   topWallHeight: number,
   bottomThickness: number,
-  config: KeyboardConfig
+  config: KeyboardConfig,
 ) => {
-  if (config.connectors.length === 0) {
+  if (!config.connectors || config.connectors.length === 0) {
     return null;
   }
 
-  console.log
+  const allConnectors = createAllConnectors(
+    plateWidth - 2 * wallThickness,
+    plateHeight - 2 * wallThickness,
+    offset,
+    config,
+  );
 
-  const bottomConnectors = createAllConnectors(plateWidth - 2 * wallThickness, plateHeight - 2 * wallThickness, offset, config);
-  const topConnectors = bottomConnectors.map(c => c.translate([0, 0, topWallHeight / 2]));
-  
-  return union(...A.zipWith(bottomConnectors, topConnectors, (a, b) => hull(a, b)))
-    .translate([wallThickness, wallThickness, bottomThickness]);
+  const enabledConnectors = pipe(
+    allConnectors,
+    A.filter((c): c is ScadObject => c !== null),
+  );
+
+  const bottomConnectors = enabledConnectors;
+  const topConnectors = enabledConnectors.map((c) => c.translate_z(topWallHeight / 2));
+
+  return union(...A.zipWith(bottomConnectors, topConnectors, (a, b) => hull(a, b))).translate([
+    wallThickness,
+    wallThickness,
+    bottomThickness,
+  ]);
 };
 
-export function generateBottomCase(
-  plateWidth: number, 
-  plateHeight: number, 
-  config: KeyboardConfig
-) {
+export function generateBottomCase(plateWidth: number, plateHeight: number, config: KeyboardConfig) {
   const wallThickness = config.enclosure.walls.thickness;
   const bottomThickness = config.enclosure.plate.bottomThickness;
   const topWallHeight = config.enclosure.walls.height;
@@ -47,27 +57,34 @@ export function generateBottomCase(
   const squares = {
     outer: createRoundedSquare(dimensions.outerWidth, dimensions.outerHeight),
     base: createRoundedSquare(plateWidth, plateHeight),
-    inner: createRoundedSquare(plateWidth - 2 * wallThickness, plateHeight - 2 * wallThickness)
+    inner: createRoundedSquare(plateWidth - 2 * wallThickness, plateHeight - 2 * wallThickness),
   };
 
   const baseGeometry = union(
     squares.outer.linear_extrude(bottomThickness),
     difference(squares.base, squares.inner)
       .linear_extrude(totalHeight - plateThickness)
-      .translate([0, 0, bottomThickness]),
+      .translate_z(bottomThickness),
   ).translate([dimensions.outerWidth / 2, dimensions.outerHeight / 2, 0]);
 
   const offset = wallThickness;
 
   const connectorCutouts = createConnectorCutouts(
-    plateWidth, 
-    plateHeight, 
+    plateWidth,
+    plateHeight,
     offset,
-    wallThickness, 
-    topWallHeight, 
-    bottomThickness, 
+    wallThickness,
+    topWallHeight,
+    bottomThickness,
     config,
   );
 
-  return connectorCutouts ? difference(baseGeometry, connectorCutouts) : baseGeometry;
+  const socketStructures = createSiliconPadSocketStructures(plateWidth, plateHeight, bottomThickness, config);
+
+  return pipe(
+    baseGeometry,
+    (geometry) => (socketStructures.reinforcements ? union(geometry, socketStructures.reinforcements) : geometry),
+    (geometry) => (connectorCutouts ? difference(geometry, connectorCutouts) : geometry),
+    (geometry) => (socketStructures.cutouts ? difference(geometry, socketStructures.cutouts) : geometry),
+  );
 }
