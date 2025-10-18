@@ -5,17 +5,14 @@
   "private": true,
   "scripts": {
     "build": "bun run ./src/index.ts build",
-    "build:dev": "bun run --watch ./src/index.ts build",
+    "build:dev": "bun run --watch ./src/index.ts build:dev",
+    "build:stl": "bun run ./src/index.ts build:stl",
     "clean": "rm -rf ./dist/*.scad ./dist/*.stl",
     "list": "bun run ./src/index.ts list",
-    "profiles": "bun run ./src/index.ts list",
     "help": "bun run ./src/index.ts help",
     "format": "biome format --write .",
-    "format:check": "biome format .",
-    "lint": "biome lint .",
-    "lint:fix": "biome lint --write .",
-    "check": "biome check .",
-    "check:fix": "biome check --write ."
+    "lint": "biome lint --write .",
+    "check": "biome check --write ."
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.0",

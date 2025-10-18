@@ -1,14 +1,15 @@
 import { writeFileSync } from 'node:fs';
 import { union, type ScadObject } from 'scad-js';
 import { generateBottomCase } from './bottom.js';
-import { createConfig, DEFAULT_PROFILE, KEYBOARD_PROFILES } from './config.js';
+import { createConfig } from './config.js';
+import { KEYBOARD_PROFILES } from './profile-loader.js';
 import { calculatePlateDimensions, getLayout } from './layout.js';
 import { generateKeyboardPlate } from './top.js';
 import * as A from 'fp-ts/Array';
 import { pipe } from 'fp-ts/function';
 
-function buildWithConfig(profileName?: string) {
-  const CONFIG = createConfig(profileName as keyof typeof KEYBOARD_PROFILES | undefined);
+function buildWithConfig(profileName: string) {
+  const CONFIG = createConfig(profileName);
 
   const allKeyPlacements = getLayout(CONFIG);
 
@@ -23,17 +24,17 @@ function buildWithConfig(profileName?: string) {
   };
 }
 
-export function buildTopPlate(profileName?: string) {
+export function buildTopPlate(profileName: string) {
   const { CONFIG, allKeyPlacements, plateWidth, plateHeight, plateOffset } = buildWithConfig(profileName);
   return generateKeyboardPlate(allKeyPlacements, plateWidth, plateHeight, plateOffset, CONFIG);
 }
 
-export function buildBottomCase(profileName?: string) {
+export function buildBottomCase(profileName: string) {
   const { CONFIG, plateWidth, plateHeight } = buildWithConfig(profileName);
   return generateBottomCase(plateWidth, plateHeight, CONFIG);
 }
 
-export function buildCompleteEnclosure(profileName?: string) {
+export function buildCompleteEnclosure(profileName: string) {
   const { CONFIG } = buildWithConfig(profileName);
   const topPlateGeometry = buildTopPlate(profileName).translate([0, 0, CONFIG.enclosure.plate.bottomThickness]);
   const bottomCaseGeometry = buildBottomCase(profileName);
@@ -45,11 +46,25 @@ const createOutputFile = (fileName: string, modelGeometry: ScadObject) => ({
   modelGeometry,
 });
 
-export function build(generateStlFiles = false, profileName?: string) {
+function getTimestampHash(): string {
+  const now = new Date();
+  const timestamp = now.getTime().toString(36);
+  return timestamp.slice(-6);
+}
+
+export function build(generateStlFiles = false, profileName: string, isDevMode = false) {
   const { CONFIG, allKeyPlacements, plateWidth, plateHeight } = buildWithConfig(profileName);
-  const activeProfile = profileName || process.env.KEYBOARD_PROFILE || DEFAULT_PROFILE;
 
   const OPENSCAD_RESOLUTION = CONFIG.output?.openscad?.resolution ?? 64;
+
+  // Determine output directory
+  const outputDir = isDevMode ? './dist' : `./dist/${profileName}-${getTimestampHash()}`;
+
+  // Create directory if it doesn't exist (for production builds)
+  if (!isDevMode) {
+    const { mkdirSync } = require('node:fs');
+    mkdirSync(outputDir, { recursive: true });
+  }
 
   const outputFiles = [
     createOutputFile('top', buildTopPlate(profileName)),
@@ -58,11 +73,11 @@ export function build(generateStlFiles = false, profileName?: string) {
   ];
 
   const fileWritePromises = outputFiles.map(async (file) => {
-    const scadPath = `./dist/${file.fileName}.scad`;
+    const scadPath = `${outputDir}/${file.fileName}.scad`;
     writeFileSync(scadPath, file.modelGeometry.serialize({ $fn: OPENSCAD_RESOLUTION }));
 
     if (generateStlFiles) {
-      const stlPath = `./dist/${file.fileName}.stl`;
+      const stlPath = `${outputDir}/${file.fileName}.stl`;
       writeFileSync(stlPath, await file.modelGeometry.render({ $fn: OPENSCAD_RESOLUTION }));
     }
 
@@ -70,10 +85,24 @@ export function build(generateStlFiles = false, profileName?: string) {
   });
 
   Promise.all(fileWritePromises)
-    .then(() => {
-      console.log(`Generated SCAD files for profile: ${activeProfile}`);
+    .then((paths) => {
+      const { statSync } = require('node:fs');
+      const { readdirSync } = require('node:fs');
+
+      console.log(`Generated files for profile: ${profileName}`);
       console.log(`  • Keyboard size: ${allKeyPlacements.length} keys`);
       console.log(`  • Plate dimensions: ${plateWidth.toFixed(1)}×${plateHeight.toFixed(1)}mm`);
+      console.log(`\n${outputDir}/`);
+
+      // List all files in output directory
+      const files = readdirSync(outputDir).sort();
+      files.forEach((file, index) => {
+        const isLast = index === files.length - 1;
+        const prefix = isLast ? '└──' : '├──';
+        const stats = statSync(`${outputDir}/${file}`);
+        const sizeKB = (stats.size / 1024).toFixed(1);
+        console.log(`${prefix} ${file} (${sizeKB}K)`);
+      });
     })
     .catch((error) => {
       console.error('Error generating files:', error);
@@ -85,7 +114,7 @@ export function build(generateStlFiles = false, profileName?: string) {
  */
 // Pure function to format profile info
 const formatProfileInfo = (name: string) => {
-  const finalConfig = createConfig(name as keyof typeof KEYBOARD_PROFILES);
+  const finalConfig = createConfig(name);
   const rowLayout = finalConfig.layout.matrix.rowLayout;
   const thumbKeys = finalConfig.thumb?.cluster?.keys ?? 0;
   const switchType = finalConfig.switch.type;
