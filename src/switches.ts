@@ -7,8 +7,8 @@ export const SWITCH_SPECS = {
       cutout: {
         height: 1.5,
         startHeight: 2.6,
-        inner: 13.9,
-        outer: 15.1,
+        inner: 13.8,
+        outer: 15.0,
       },
       plate: {
         thickness: 1.6,
