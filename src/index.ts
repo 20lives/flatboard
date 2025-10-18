@@ -1,14 +1,12 @@
 import { build, listProfiles } from './build.js';
 import { DEFAULT_PROFILE } from './config.js';
-import { ProfileManager } from './profile-utils.js';
+import { profileExists } from './profile-utils.js';
 
-// Command line argument parsing
 const args = process.argv.slice(2);
 const [command, ...commandArgs] = args;
 
-// Helper function to handle profile building
 function handleBuild(profileName?: string) {
-  if (profileName && !ProfileManager.profileExists(profileName)) {
+  if (profileName && !profileExists(profileName)) {
     console.error(`Profile '${profileName}' not found. Use 'bun run list' to see available profiles.`);
     process.exit(1);
   }
@@ -16,16 +14,10 @@ function handleBuild(profileName?: string) {
   build(false, profileName);
 }
 
-switch (command) {
-  case 'list':
-    listProfiles();
-    break;
-
-  case 'build':
-    handleBuild(commandArgs[0]);
-    break;
-
-  case 'help':
+const commands: Record<string, () => void> = {
+  list: () => listProfiles(),
+  build: () => handleBuild(commandArgs[0]),
+  help: () =>
     console.log(`flatboard - Parameterized Keyboard Generator
 
 Usage:
@@ -38,20 +30,21 @@ Commands:
 
 Examples:
   bun run build                       # Build with default profile (${DEFAULT_PROFILE})
-  bun run build -- build ortho-36     # Build 36-key layout  
+  bun run build -- build ortho-36     # Build 36-key layout
   bun run list                        # List available profiles
   bun run clean                       # Remove all scad & stl artifacts
 
 Output files are always: top.scad, bottom.scad, complete.scad
-`);
-    break;
+`),
+  undefined: () => handleBuild(),
+};
 
-  case undefined:
-    handleBuild(); // Build with default profile when no command specified
-    break;
+const executeCommand = commands[command ?? 'undefined'];
 
-  default:
-    console.error(`Unknown command: ${command}`);
-    console.log('Use "bun src/index.ts help" for usage information');
-    process.exit(1);
+if (executeCommand) {
+  executeCommand();
+} else {
+  console.error(`Unknown command: ${command}`);
+  console.log('Use "bun src/index.ts help" for usage information');
+  process.exit(1);
 }
