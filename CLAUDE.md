@@ -1,285 +1,222 @@
-# laptop-ortho-36: Parametric Split Keyboard System
+# flatboard: Parametric Split Keyboard Generator
 
 ## Project Overview
 
-This project is a sophisticated parametric design system for generating complete 3D printable keyboard assemblies for split ortholinear keyboards. It uses **scad-js** to write TypeScript code that transpiles to OpenSCAD, enabling powerful programmatic 3D CAD modeling with modern programming features and professional-grade build automation.
+TypeScript-based parametric design system for generating 3D-printable split keyboard cases. Uses scad-js to transpile TypeScript to OpenSCAD, enabling programmatic CAD modeling with modern language features.
 
-## Architecture Evolution
+## Core Technology Stack
 
-The project has evolved from a single-file parametric generator into a production-ready keyboard design system with modular architecture, profile management, and multi-switch support.
-
-### Core Technology Stack
-- **TypeScript**: Main programming language for parametric design
-- **scad-js v0.6.6**: TypeScript-to-OpenSCAD transpiler  
-- **Bun**: Runtime environment and CLI execution
-- **OpenSCAD**: Final 3D model output format
-
-### Design Philosophy
-The codebase demonstrates advanced parametric thinking through:
-- **Modular architecture**: Clean separation of concerns across specialized modules
-- **Configuration inheritance**: Hierarchical profile system with switch type support
-- **Mathematical precision**: Rotation-aware layout calculations
-- **Manufacturing focus**: Professional mounting system with heat inserts
-- **CLI integration**: Command-line interface for build automation
+- **TypeScript**: Configuration and geometry logic
+- **scad-js v0.6.6**: TypeScript-to-OpenSCAD transpiler
+- **fp-ts**: Functional programming patterns (pipe, Option, Either, Array utilities)
+- **Bun**: Runtime and build system
+- **OpenSCAD**: Final 3D model output
 
 ## Project Structure
 
 ```
 src/
-├── index.ts              # CLI interface and command routing
-├── build.ts              # Build orchestration and file generation  
-├── config.ts             # Main configuration factory and exports
-├── interfaces.ts         # TypeScript interfaces and type definitions
-├── base-params.ts        # Base default configuration parameters
-├── switches.ts           # Switch specifications (Choc, MX)
-├── connector-specs.ts    # Connector specifications (USB-C, TRRS)
-├── keyboard-profiles.ts  # Predefined keyboard profiles
-├── profile-utils.ts      # Profile management utilities
-├── layout.ts             # Keyboard layout geometry and mathematics
-├── switch-sockets.ts     # Switch cutout geometry generation
-├── walls.ts              # Case wall geometry
-├── connector.ts          # Generic connector system
-├── top.ts               # Top plate assembly
-├── bottom.ts            # Bottom case assembly
-└── utils.ts             # Utility functions
+├── index.ts                  # CLI with object literal command routing
+├── build.ts                  # Build orchestration
+├── config.ts                 # Configuration factory
+├── interfaces.ts             # TypeScript type definitions
+├── base-params.ts            # Default configuration
+├── switches.ts               # Switch specifications (Choc, MX)
+├── connector-specs.ts        # Connector definitions (USB-C, TRRS)
+├── keyboard-profiles.ts      # Profile data only (231 lines)
+├── profile-utils.ts          # Profile utilities and validation (272 lines)
+├── layout.ts                 # Layout geometry calculations
+├── switch-sockets.ts         # Switch cutout generation
+├── walls.ts                  # Wall geometry
+├── connector.ts              # Connector system with face mapping
+├── top.ts                    # Top plate assembly (fp-ts pipe)
+├── bottom.ts                 # Bottom case assembly (fp-ts pipe)
+├── bottom-pads-sockets.ts    # Socket structures (pure functional)
+└── utils.ts                  # Core utilities (trimmed)
 
-dist/                     # Generated output files
-├── top.scad             # Top plate OpenSCAD file
-├── bottom.scad          # Bottom case OpenSCAD file
-└── complete.scad        # Complete assembly
+dist/
+├── top.scad                  # Generated top plate
+├── bottom.scad               # Generated bottom case
+└── complete.scad             # Assembly preview
 ```
 
 ## Configuration System
 
-### Modular Configuration Architecture
-The system uses a sophisticated modular configuration architecture with TypeScript interfaces:
+Configuration flows through modular layers:
 
 ```
-BASE_PARAMETERS → KEYBOARD_PROFILES → SWITCH_SPECS → Final KeyboardConfig
+BASE_PARAMETERS → KEYBOARD_PROFILES → SWITCH_SPECS → KeyboardConfig
 ```
 
-#### Modular Configuration Files
-- **`interfaces.ts`**: Complete TypeScript interfaces for all configuration types
-- **`base-params.ts`**: BASE_PARAMETERS with comprehensive defaults
-- **`switches.ts`**: SWITCH_SPECS for Choc vs MX with auto-inheritance  
-- **`connector-specs.ts`**: CONNECTOR_SPECS for USB-C, TRRS, and extensible types
-- **`keyboard-profiles.ts`**: Predefined keyboard profiles with partial overrides
-- **`config.ts`**: Main factory orchestrating the modular system
+### Module Separation
 
-#### Advanced Row Layout System
-The new `rowLayout` system provides pixel-perfect control over key placement:
+- **`keyboard-profiles.ts`**: Pure profile data (KEYBOARD_PROFILES object and DEFAULT_PROFILE constant)
+- **`profile-utils.ts`**: Profile management logic (ProfileManager class + fp-ts utility functions)
 
+This separation keeps configuration data separate from the logic that operates on it.
+
+### Row Layout System
+
+Each row defined by three parameters:
 ```typescript
 rowLayout: [
-  { start: 0, length: 3, offset: 5 },   // Row 0: 3 keys, 5mm column stagger
-  { start: -1, length: 4, offset: 0 },  // Row 1: 4 keys, starts at grid -1
-  { start: 1, length: 3, offset: 2 }    // Row 2: 3 keys, offset right + stagger
+  { start: 0, length: 3, offset: 5 },   // Row 0: 3 keys, 5mm stagger
+  { start: -1, length: 4, offset: 0 },  // Row 1: starts at column -1
+  { start: 1, length: 3, offset: 2 }    // Row 2: starts at column 1
 ]
 ```
 
-**Key Features:**
-- **`start`**: Starting grid position (can be negative for precise placement)
-- **`length`**: Number of keys in each row
-- **`offset`**: Column stagger amount in millimeters
-- **Full TypeScript support**: Complete interface definitions with IntelliSense
+- `start`: Starting column (can be negative)
+- `length`: Number of keys
+- `offset`: Column stagger in millimeters
 
-### Switch Type Support
-The system supports both **Kailh Choc** and **Cherry MX** switches with automatic parameter inheritance:
+### Switch Support
 
-**Choc Specification:**
-- `cutoutSize: 13.8mm`, `plateThickness: 1.6mm`, `totalThickness: 8.0mm`, `pitch: 18.0mm`
-- Optimized for low-profile builds
+Automatic parameter inheritance based on switch type:
 
-**MX Specification:**  
-- `cutoutSize: 13.9mm`, `plateThickness: 5.0mm`, `totalThickness: 7.0mm`, `pitch: 18.6mm`
-- Standard Cherry MX compatibility
+**Choc**: `cutoutSize: 13.8mm`, `plateThickness: 1.6mm`, `pitch: 18.0mm`
+**MX**: `cutoutSize: 13.9mm`, `plateThickness: 5.0mm`, `pitch: 18.6mm`
 
-### Predefined Profiles
-- **`ortho-36`**: 36-key split (rowLayout system + 3 thumb) - Choc switches
-- **`ortho-36-mx`**: Same layout optimized for MX switches  
-- **`ortho-4x10`**: 40-key single-side layout with 10-row configuration
-- **`test-single-choc/mx`**: Single key test profiles for both switch types
-- **`test-custom-rows`**: Demo of simple custom row layouts  
-- **`test-advanced-layout`**: Demo of advanced grid positioning with negative start values
-- **`test-multi-connectors`**: Demo of multiple connector types and positioning
+### Connector System
 
-## Key Modules
+Connectors can be placed on any face (top/bottom/left/right) with 0-1 positioning along that edge.
 
-#### `interfaces.ts` - TypeScript Type System
-- **Complete type definitions**: All configuration interfaces with full IntelliSense support
-- **KeyboardConfig interface**: Main configuration type with nested structure
-- **RowLayoutItem interface**: Precise row definition with start, length, offset
-- **Modular types**: Switch, connector, and enclosure specifications
+**Important**: Coordinate system is rotated 90° clockwise. The connector face mapping in `connector.ts` accounts for this:
+- User "top" → Physical left
+- User "right" → Physical top
+- User "bottom" → Physical right
+- User "left" → Physical bottom
 
-#### `layout.ts` - Mathematical Layout Engine  
-- **Unified rowLayout system**: Single algorithm supporting all layout types
-- **Ergonomic positioning**: Sophisticated thumb cluster with per-key rotation/offset
-- **Split keyboard logic**: Automatic left/right mirroring with rotation inversion  
-- **Rotation-aware geometry**: Precise bounding box calculations for rotated keys
-- **Constraint-based positioning**: All coordinates calculated from rowLayout definitions
+Rotations are adjusted by -90° to compensate for coordinate transformation.
 
-#### `switch-sockets.ts` - Modular Cutout System
-- **Switch hole cutouts**: Precise switch mounting holes
-- **Thin zone cutouts**: Socket clearance zones around switches
-- **Frame boundary cutouts**: Structural frame boundaries
-- **Parametric geometry**: All cutouts scale with configuration changes
+## Code Patterns
 
-#### `connector.ts` - Generic Connector System
-- **Multiple connector types**: USB-C (pill geometry), TRRS (circle geometry)
-- **Configurable placement**: Any face (top/bottom/left/right) with precise positioning  
-- **Smart positioning**: Automatic clearance from plate thickness and wall boundaries
-- **Type-safe configuration**: Connector specifications with geometry definitions
+### Functional Programming with fp-ts
 
-#### `walls.ts` - Enclosure Wall System
-- **Parametric walls**: Configurable thickness and height
-- **Top/bottom coordination**: Separate wall geometries for each component
-- **Boolean operations**: Clean internal cavities with proper clearances
+The codebase uses fp-ts for functional composition:
 
-#### `top.ts` & `bottom.ts` - Assembly Modules
-- **Component integration**: Combines layout, walls, and switch systems
-- **Manufacturing ready**: Proper tolerances and print-friendly geometry
-
-#### `build.ts` - Build Orchestration
-- **Profile-specific building**: Dynamic configuration per build
-- **Multiple outputs**: `.scad` files + optional `.stl` generation
-- **Comprehensive logging**: Dimensions, key count, thickness reporting
-
-## Understanding scad-js
-
-**scad-js** is a powerful library that bridges TypeScript and OpenSCAD:
-
-### Core Capabilities
-- **Type Safety**: Full TypeScript support with proper vector and primitive typing
-- **Functional Composition**: Chain transformations like `.translate()`, `.rotate()`, `.linear_extrude()`
-- **Boolean Operations**: `union()`, `difference()`, `intersection()` for complex geometry
-- **Primitives**: `cube()`, `sphere()`, `cylinder()`, `polygon()` with parametric sizing
-- **2D/3D Workflows**: 2D shapes can be extruded to 3D with `linear_extrude()`
-
-### Design Pattern Used
 ```typescript
-// 2D base shapes
-const shape2D = polygon(points).translate([x, y, 0]);
-
-// Extrude to 3D
-const shape3D = shape2D.linear_extrude(height);
-
-// Boolean operations
-const final = difference(union(base, feature), cutout);
-
-// Serialize to OpenSCAD
-writeFileSync('model.scad', final.serialize({$fn: 64}));
-```
-
-## Technical Innovations
-
-### 1. Modular TypeScript Architecture
-Complete separation of concerns with full type safety:
-- **Modular configuration**: 7 focused files instead of 1 monolithic config
-- **TypeScript interfaces**: Complete type definitions for all configuration options
-- **Row layout system**: Unified `{ start, length, offset }` system for all keyboard layouts
-- **Type-safe connectors**: Strongly typed connector specifications with geometry definitions
-
-### 2. Advanced Row Layout System
-Revolutionary approach to keyboard layout definition:
-```typescript
-rowLayout: [
-  { start: -1, length: 3, offset: 2 },  // Can start at negative grid positions
-  { start: 1, length: 4, offset: 0 },   // Each row independently positioned
-  { start: 0, length: 3, offset: 1 }    // Perfect control over stagger and placement
-]
-```
-
-### 3. Split Wall Architecture
-The enclosure uses a unique split wall design:
-- **Top plate**: Has 6mm walls extending downward
-- **Bottom case**: Has 6mm walls extending upward
-- **Assembly**: Walls meet to form complete 12mm enclosure height
-- **Benefits**: Better printing orientation and easier assembly
-
-### 4. Parametric Switch Mounting
-Advanced switch mounting with frame structures:
-- **Individual frames**: Each switch gets its own mounting frame
-- **Thin zone cutouts**: Precise plate contact areas
-- **Frame reinforcement**: Additional material around switch perimeter
-- **Boolean optimization**: Efficient CSG operations
-
-### 5. Rotation-Aware Calculations
-Handles arbitrary key rotations throughout the system:
-```typescript
-const rotationExtent = 0.5 * absoluteCosineSine(normalizedAngle) * keySize;
-```
-
-### 6. Modular Boolean Operations
-Clean separation of geometry generation and assembly:
-```typescript
-// Top plate assembly
-const plateComponents = [plateWithFrameCutouts, frameStructures];
-const topWalls = createTopWalls(plateWidth, plateHeight);
-return union(...plateComponents, topWalls);
-
-// Bottom case assembly
-return difference(
-  union(bottomPlate, bottomWalls),
-  union(...cornerScrewSockets)
+// Pipe for sequential operations
+return pipe(
+  config.enclosure.bottomPadsSockets ?? [],
+  O.fromPredicate(sockets => sockets.length > 0),
+  O.map(sockets => processSocketStructures(sockets)),
+  O.getOrElse(() => ({ reinforcements: null, cutouts: null }))
 );
 ```
 
-## Generated Output
+### Object Literal Pattern
 
-The system generates three OpenSCAD files:
+Replaced switch statements and if-else chains with object literals:
 
-### 1. `top-plate.scad`
-- Complete switch mounting plate with heat insert corner mounts
-- Integrated top walls extending downward
-- Ready for switch installation and heat insert pressing
+```typescript
+const positionCalculators = {
+  top: () => ({ x: wallThickness, y: calculateY(), z, rotation: [0, 0, -90] }),
+  right: () => ({ x: calculateX(), y: wallThickness, z, rotation: [0, 0, 0] }),
+  bottom: () => ({ x: plateWidth + wallThickness, y: calculateY(), z, rotation: [0, 0, 90] }),
+  left: () => ({ x: calculateX(), y: plateHeight + wallThickness, z, rotation: [0, 0, 180] }),
+};
 
-### 2. `bottom-case.scad` 
-- Electronics enclosure with cavity and cable management
-- Corner screw socket posts for assembly
-- USB cutouts and rubber feet positioning
+return positionCalculators[face]();
+```
 
-### 3. `complete-enclosure.scad`
-- Assembled view showing both parts together
-- Proper Z-positioning for visualization
-- Complete keyboard enclosure
+This pattern appears in:
+- `connector.ts`: Face positioning and geometry creation
+- `bottom-pads-sockets.ts`: Anchor positioning, boundary calculation, shape creation
+- `index.ts`: Command routing
 
-## Current Configuration
+### Pure Functions
 
-**Layout**: 36-key split (15 per hand + 3 thumb keys each)
-**Dimensions**: ~252mm × 118mm plate
-**Wall System**: 6mm + 6mm split walls (12mm total height)
-**Electronics**: Internal cavity with cable channel
+Modules like `bottom-pads-sockets.ts` use pure functional patterns:
+- No mutations (eliminated `forEach`, `push`, mutable arrays)
+- Extracted pure helper functions (`createSocketGeometry`)
+- Functional composition with `pipe`, `A.map`, `O.fromPredicate`
+
+## Key Modules
+
+### `connector.ts`
+Generic connector system with type-safe specifications. Handles coordinate system rotation for correct face placement. Uses object literals for position and geometry calculations.
+
+### `layout.ts`
+Mathematical layout engine with rotation-aware calculations. Handles split keyboard mirroring and thumb cluster positioning.
+
+### `top.ts` and `bottom.ts`
+Assembly modules using fp-ts `pipe` for conditional geometry composition. Clean separation of geometry generation and boolean operations.
+
+### `bottom-pads-sockets.ts`
+Socket structure generation using pure functional patterns. Creates reinforcements and cutouts for silicon pad sockets with anchor-based positioning.
+
+### `utils.ts`
+Core utilities only (trimmed from 262 to 135 lines):
+- `deepMerge`: Configuration merging returning `Either<string, T>`
+- `convertDegreesToRadians`: Angle conversion
+- `calculateAbsoluteCosineSine`: Rotation calculations
+- `calculateHalfIndex`: Layout math
+- `rotatePoint`: Point rotation with fp-ts Option
+- `createRoundedSquare`: Hull-based rounded rectangles
+
+All utilities use fp-ts patterns. No backward compatibility wrappers.
+
+## scad-js Patterns
+
+```typescript
+// 2D to 3D extrusion
+const shape2D = createRoundedSquare(width, height);
+const shape3D = shape2D.linear_extrude(thickness);
+
+// Boolean operations
+const result = difference(
+  union(base, feature),
+  cutout
+);
+
+// Transformations
+const positioned = geometry
+  .rotate([0, 0, 90])
+  .translate([x, y, z]);
+
+// Serialize to OpenSCAD
+writeFileSync('output.scad', result.serialize({$fn: 64}));
+```
+
+## Output Files
+
+### `top.scad`
+Top plate with switch cutouts, mounting frames, and connector cutouts. Walls extend downward.
+
+### `bottom.scad`
+Bottom case with electronics cavity, socket structures, and connector cutouts. Walls extend upward.
+
+### `complete.scad`
+Assembly preview showing both parts together.
+
+## Split Wall Architecture
+
+- Top plate: 6mm walls extending downward
+- Bottom case: 6mm walls extending upward
+- Assembly: Walls meet for 12mm total enclosure height
+- Designed for FDM printing without supports
 
 ## Usage
 
-Generate all files:
 ```bash
-bun run generate.ts
+bun run build              # Build default profile
+bun run build -- ortho-36  # Build specific profile
+bun run list               # List available profiles
 ```
 
-This creates:
-- `top-plate.scad` - Top plate with heat insert mounts
-- `bottom-case.scad` - Bottom enclosure with screw sockets  
-- `complete-enclosure.scad` - Assembled view
+Output goes to `dist/` directory.
 
-## Assembly Process
+## Design Principles
 
-1. **3D Print**: Print top plate and bottom case separately
-2. **Heat Inserts**: Press M3 heat inserts into top plate corner mounts
-3. **Electronics**: Install switches, wiring, and controller in bottom case
-4. **Assembly**: Align top plate over bottom case and secure with M3 screws
-5. **Finishing**: Add rubber feet and connect cables
+- Everything calculated from configuration (no hardcoded positions)
+- Modular architecture with clear separation of concerns
+- Type-safe with full TypeScript interfaces
+- Functional patterns for maintainability
+- Manufacturing constraints built into geometry generation
+- Single source of truth for all dimensions
 
-## Design Philosophy
-
-This project exemplifies modular parametric design:
-- **Everything is calculated**: No magic numbers or manual positioning
-- **Modular architecture**: Clean separation enables easy modification
-- **Single source of truth**: All parameters flow from config.ts
-- **Manufacturing-ready**: Designed for FDM 3D printing constraints
-- **Assembly-focused**: Split design enables easy electronics access
-
-The result is a completely parametric, manufacturable keyboard enclosure that can be instantly reconfigured for different layouts, sizes, or ergonomic preferences while maintaining structural integrity and ease of assembly.
+---
 
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.
