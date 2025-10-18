@@ -9,35 +9,33 @@ TypeScript-based parametric design system for generating 3D-printable split keyb
 - **TypeScript**: Configuration and geometry logic
 - **scad-js v0.6.6**: TypeScript-to-OpenSCAD transpiler
 - **fp-ts**: Functional programming patterns (pipe, Option, Either, Array utilities)
-- **Bun**: Runtime and build system
+- **Bun**: Runtime and build system with Bun.Glob for profile discovery
 - **OpenSCAD**: Final 3D model output
 
 ## Project Structure
 
 ```
-src/                          # Core codebase (logic only)
+src/
 ├── index.ts                  # CLI with object literal command routing
-├── build.ts                  # Build orchestration
-├── config.ts                 # Configuration factory
-├── profile-loader.ts         # Dynamic profile discovery
+├── build.ts                  # Build orchestration with 3 modes
+├── config.ts                 # Configuration factory with fp-ts patterns
+├── profile-loader.ts         # Bridge between profiles/ and src/
 ├── interfaces.ts             # TypeScript type definitions
-├── base-params.ts            # Default configuration
 ├── switches.ts               # Switch specifications (Choc, MX)
-├── connector-specs.ts        # Connector definitions (USB-C, TRRS)
+├── connector-specs.ts        # Connector definitions (USB-C, TRRS, power button)
 ├── layout.ts                 # Layout geometry calculations
 ├── switch-sockets.ts         # Switch cutout generation
-├── walls.ts                  # Wall geometry
 ├── connector.ts              # Connector system with face mapping
 ├── top.ts                    # Top plate assembly (fp-ts pipe)
 ├── bottom.ts                 # Bottom case assembly (fp-ts pipe)
 ├── bottom-pads-sockets.ts    # Socket structures (pure functional)
-└── utils.ts                  # Core utilities (trimmed)
+└── utils.ts                  # Core utilities
 
-profiles/                     # User-editable keyboard profiles (data)
-├── index.ts                  # Auto-discovery using Bun.Glob
-├── split-36.ts               # 36-key split keyboard
-├── macropad-3x3.ts           # 3x3 macropad
-└── test-single-choc.ts       # Single key test
+profiles/
+├── index.ts                  # Auto-discovery with Bun.Glob
+├── split-36.ts              # 36-key split ergonomic keyboard
+├── macropad-3x3.ts          # 9-key macropad
+└── test-single-choc.ts      # Single key test configuration
 
 dist/
 ├── top.scad                  # Generated top plate
@@ -47,25 +45,42 @@ dist/
 
 ## Configuration System
 
-Configuration flows through modular layers:
+### Profile Separation
+
+Keyboard configurations are separated from the codebase in the `profiles/` directory:
+
+- **User space**: `profiles/` contains keyboard definitions (data only)
+- **Code space**: `src/` contains the parametric generator logic
+- **Auto-discovery**: `profiles/index.ts` uses Bun.Glob to scan and dynamically import all profile files
+
+```typescript
+// profiles/index.ts
+const glob = new Glob('*.ts');
+const profileFiles = Array.from(glob.scanSync({ cwd: __dirname }))
+  .filter((file) => file !== 'index.ts');
+
+for (const file of profileFiles) {
+  const filePath = join(__dirname, file);
+  const module = await import(filePath);
+  const profileName = file.replace(/\.ts$/, '');
+
+  if (module.profile) {
+    profileEntries.push([profileName, module.profile]);
+  }
+}
+```
+
+### Configuration Flow
 
 ```
-profiles/*.ts → PROFILES (auto-discovered) → SWITCH_SPECS → KeyboardConfig
+profiles/*.ts → PROFILES → profile-loader.ts → config.ts → SWITCH_SPECS → KeyboardConfig
 ```
 
-### Architecture Separation
-
-- **`profiles/`**: User-editable keyboard definitions (data layer)
-  - Each profile is a separate `.ts` file
-  - Add a new keyboard by adding a `.ts` file to this directory
-  - `profiles/index.ts` scans and imports all profiles using `Bun.Glob`
-
-- **`src/`**: Core codebase (logic layer)
-  - `profile-loader.ts`: Bridges profiles with the codebase
-  - `config.ts`: Configuration factory and merging
-  - No profile data stored in source code
-
-This separation allows users to add/modify profiles without touching the codebase.
+1. Profile files export a `profile` constant of type `ParameterProfile`
+2. `profiles/index.ts` dynamically imports all profiles using Bun.Glob
+3. `profile-loader.ts` provides type-safe access to profiles
+4. `config.ts` merges profile with switch specifications using fp-ts deepMerge
+5. Final `KeyboardConfig` contains all required parameters
 
 ### Row Layout System
 
@@ -81,6 +96,7 @@ rowLayout: [
 - `start`: Starting column (can be negative)
 - `length`: Number of keys
 - `offset`: Column stagger in millimeters
+- `thumbAnchor`: Optional anchor key index for thumb cluster positioning
 
 ### Switch Support
 
@@ -117,6 +133,15 @@ return pipe(
 );
 ```
 
+**Common patterns:**
+- `pipe()`: Sequential transformations
+- `O.fromNullable()`: Convert nullable to Option
+- `O.fromPredicate()`: Convert based on condition
+- `O.map()`: Transform Some values
+- `O.getOrElse()`: Provide default for None
+- `E.Either`: Error handling with Left/Right
+- `A.map()`, `A.filter()`, `A.chain()`: Array operations
+
 ### Object Literal Pattern
 
 Replaced switch statements and if-else chains with object literals:
@@ -139,35 +164,190 @@ This pattern appears in:
 
 ### Pure Functions
 
-Modules like `bottom-pads-sockets.ts` use pure functional patterns:
+Modules use pure functional patterns:
 - No mutations (eliminated `forEach`, `push`, mutable arrays)
-- Extracted pure helper functions (`createSocketGeometry`)
+- Extracted pure helper functions
 - Functional composition with `pipe`, `A.map`, `O.fromPredicate`
 
+Example from `layout.ts`:
+```typescript
+const createMatrixKey = (
+  rowIndex: number,
+  keyIndex: number,
+  row: { start: number; length: number; offset?: number },
+  matrixSpacing: number,
+): KeyPlacement => ({
+  pos: {
+    x: (row.start + keyIndex) * matrixSpacing + (row.offset ?? 0),
+    y: rowIndex * matrixSpacing,
+  },
+  rot: 0,
+});
+```
+
 ## Key Modules
+
+### `profiles/index.ts`
+Auto-discovery system using Bun.Glob. Scans all `*.ts` files in `profiles/` directory and dynamically imports them. Filters out `index.ts` itself.
+
+### `profile-loader.ts`
+Bridge between `profiles/` and `src/`. Provides:
+- `getProfileNames()`: List all available profiles
+- `profileExists()`: Check if profile exists
+- `getProfile()`: Get profile by name
+
+### `config.ts`
+Configuration factory that merges profiles with switch specifications using fp-ts patterns:
+```typescript
+const getSwitchSpec = (switchType: string): O.Option<SwitchSpec> =>
+  pipe(SWITCH_SPECS[switchType], O.fromNullable);
+
+function createFinalConfig(profileName: string): KeyboardConfig {
+  return pipe(
+    getProfile(profileName),
+    O.fold(
+      () => { throw new Error(`Profile '${profileName}' not found`); },
+      (profile) => pipe(
+        getSwitchSpec(profile.switch.type),
+        O.fold(
+          () => createConfigFromProfile(profile),
+          (switchSpec) => pipe(
+            deepMerge(profile, switchSpec),
+            E.getOrElse(() => profile),
+            createConfigFromProfile,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+```
 
 ### `connector.ts`
 Generic connector system with type-safe specifications. Handles coordinate system rotation for correct face placement. Uses object literals for position and geometry calculations.
 
-### `layout.ts`
-Mathematical layout engine with rotation-aware calculations. Handles split keyboard mirroring and thumb cluster positioning.
+**Geometry creators:**
+- `pill`: Two circles connected with hull (USB-C)
+- `circle`: Single circular cutout (TRRS, power button)
+- `square`: Rectangular cutout
 
-### `top.ts` and `bottom.ts`
-Assembly modules using fp-ts `pipe` for conditional geometry composition. Clean separation of geometry generation and boolean operations.
+### `layout.ts`
+Mathematical layout engine with rotation-aware calculations:
+- `buildLayout()`: Creates matrix keys and thumb cluster using pure functions
+- `applyGlobalRotation()`: Rotates entire layout by baseDegrees
+- `getLayout()`: Calculates final positions with edge margins
+- `calculatePlateDimensions()`: Computes plate size from key bounds
+
+Handles split keyboard mirroring and thumb cluster positioning with anchor-based offsets.
+
+### `top.ts`
+Top plate assembly using fp-ts `pipe` for conditional geometry composition:
+```typescript
+return pipe(
+  union(difference(wallBox, switchCutouts), switchFrame, reinforcementFrame),
+  (geometry) => connectorCutouts ? difference(geometry, connectorCutouts) : geometry,
+);
+```
+
+Creates:
+- Outer wall box
+- Switch cutouts (outer square for mounting)
+- Switch frame (inner square for switch body)
+- Reinforcement frame (additional support)
+- Connector cutouts
+
+### `bottom.ts`
+Bottom case assembly using fp-ts `pipe`:
+```typescript
+return pipe(
+  baseGeometry,
+  (geometry) => socketStructures.reinforcements ? union(geometry, socketStructures.reinforcements) : geometry,
+  (geometry) => connectorCutouts ? difference(geometry, connectorCutouts) : geometry,
+  (geometry) => socketStructures.cutouts ? difference(geometry, socketStructures.cutouts) : geometry,
+);
+```
+
+Creates:
+- Base floor plate
+- Inner walls extending upward
+- Socket reinforcements (additive)
+- Connector cutouts
+- Socket cutouts (subtractive)
 
 ### `bottom-pads-sockets.ts`
 Socket structure generation using pure functional patterns. Creates reinforcements and cutouts for silicon pad sockets with anchor-based positioning.
 
+**Features:**
+- Anchor-based positioning (`top-left`, `top-right`, `bottom-left`, `bottom-right`, `center`)
+- Size-aware boundary calculations including reinforcement and wall thickness
+- Additive reinforcement (thickness and height added to socket dimensions)
+- Support for round and square socket shapes
+
+Object literal pattern for:
+- `calculateSocketBoundary()`: Boundary calculations
+- `calculateAnchorPosition()`: Anchor positioning
+- `createSocketShapes()`: Shape creation
+
 ### `utils.ts`
-Core utilities only (trimmed from 262 to 135 lines):
-- `deepMerge`: Configuration merging returning `Either<string, T>`
-- `convertDegreesToRadians`: Angle conversion
-- `calculateAbsoluteCosineSine`: Rotation calculations
-- `calculateHalfIndex`: Layout math
-- `rotatePoint`: Point rotation with fp-ts Option
-- `createRoundedSquare`: Hull-based rounded rectangles
+Core utilities (135 lines):
+- `deepMerge<T>()`: Configuration merging returning `Either<string, T>`
+- `convertDegreesToRadians()`: Angle conversion
+- `calculateAbsoluteCosineSine()`: Rotation calculations
+- `calculateHalfIndex()`: Layout math
+- `rotatePoint()`: Point rotation with fp-ts Option
+- `createRoundedSquare()`: Hull-based rounded rectangles with validation
 
 All utilities use fp-ts patterns. No backward compatibility wrappers.
+
+### `build.ts`
+Build orchestration with three modes:
+
+**Production mode** (default):
+- Outputs to `dist/<profile>-<hash>/`
+- Timestamp hash using base36: `now.getTime().toString(36).slice(-6)`
+- Preserves build history
+- SCAD files only
+
+**Development mode** (`build:dev`):
+- Outputs to `dist/` (overwrites)
+- Watch mode support
+- Open `dist/complete.scad` in OpenSCAD for live preview
+
+**STL mode** (`build:stl`):
+- Outputs to `dist/<profile>-<hash>/`
+- Generates both SCAD and STL files using `modelGeometry.render()`
+- Ready for 3D printing
+
+Output includes file tree with sizes:
+```
+dist/split-36-w92ivk/
+├── bottom.scad (7.9K)
+├── bottom.stl (52.8K)
+├── complete.scad (5.9K)
+├── complete.stl (49.6K)
+├── top.scad (3.5K)
+└── top.stl (50.5K)
+```
+
+### `index.ts`
+CLI with object literal command routing:
+```typescript
+const commands: Record<string, () => void> = {
+  list: () => listProfiles(),
+  build: () => handleBuild(commandArgs[0], false, false),
+  'build:dev': () => handleBuild(commandArgs[0], true, false),
+  'build:stl': () => handleBuild(commandArgs[0], false, true),
+  help: () => console.log('...'),
+  undefined: () => { /* handle no command */ },
+};
+
+const executeCommand = commands[command ?? 'undefined'];
+if (executeCommand) {
+  executeCommand();
+}
+```
+
+Error handling shows available profiles when profile not found.
 
 ## scad-js Patterns
 
@@ -187,46 +367,81 @@ const positioned = geometry
   .rotate([0, 0, 90])
   .translate([x, y, z]);
 
+// Hull for organic shapes
+const rounded = hull(
+  circle.translate([x1, y1, 0]),
+  circle.translate([x2, y2, 0]),
+);
+
 // Serialize to OpenSCAD
 writeFileSync('output.scad', result.serialize({$fn: 64}));
+
+// Render to STL
+const stlData = await result.render({$fn: 64});
+writeFileSync('output.stl', stlData);
 ```
 
 ## Output Files
 
-### `top.scad`
-Top plate with switch cutouts, mounting frames, and connector cutouts. Walls extend downward.
+### `top.scad` / `top.stl`
+Top plate with:
+- Switch cutouts for mounting
+- Switch frames for switch body
+- Reinforcement frames for structural support
+- Connector cutouts
+- Walls extending downward (6mm default)
 
-### `bottom.scad`
-Bottom case with electronics cavity, socket structures, and connector cutouts. Walls extend upward.
+### `bottom.scad` / `bottom.stl`
+Bottom case with:
+- Base floor plate
+- Electronics cavity
+- Socket structures (reinforcements and cutouts)
+- Connector cutouts
+- Walls extending upward (6mm default)
 
-### `complete.scad`
-Assembly preview showing both parts together.
+### `complete.scad` / `complete.stl`
+Assembly preview showing both parts together. Top plate translated vertically by `bottomThickness` to show proper assembly.
 
 ## Split Wall Architecture
 
-- Top plate: 6mm walls extending downward
-- Bottom case: 6mm walls extending upward
-- Assembly: Walls meet for 12mm total enclosure height
-- Designed for FDM printing without supports
+- Top plate: walls extending downward from switch plate
+- Bottom case: walls extending upward from floor plate
+- Assembly: Walls meet for snap-fit enclosure
+- No screws required
+- Designed for FDM printing without supports (with exceptions for switch cutouts and optional socket structures)
 
 ## Usage
 
 ```bash
-bun run build              # Build default profile
-bun run build -- ortho-36  # Build specific profile
-bun run list               # List available profiles
-```
+# List available profiles
+bun run list
 
-Output goes to `dist/` directory.
+# Build SCAD files (production)
+bun run build -- <profile>
+
+# Build with watch mode (development)
+bun run build:dev -- <profile>
+
+# Build SCAD + STL files (production)
+bun run build:stl -- <profile>
+
+# Show help
+bun run help
+
+# Remove generated files
+bun run clean
+```
 
 ## Design Principles
 
-- Everything calculated from configuration (no hardcoded positions)
-- Modular architecture with clear separation of concerns
-- Type-safe with full TypeScript interfaces
-- Functional patterns for maintainability
-- Manufacturing constraints built into geometry generation
-- Single source of truth for all dimensions
+1. **Everything calculated from configuration**: No hardcoded positions
+2. **Modular architecture**: Clear separation of concerns (profiles vs code)
+3. **Type-safe**: Full TypeScript interfaces throughout
+4. **Functional patterns**: fp-ts for maintainability and composability
+5. **Manufacturing constraints**: Built into geometry generation
+6. **Single source of truth**: All dimensions derived from configuration
+7. **Auto-discovery**: No manual registration of profiles
+8. **Pure functions**: Predictable, testable, composable
 
 ---
 
