@@ -21,5 +21,11 @@ export const profile: ParameterProfile = {
       thickness: 1.0,
       height: 5.0,
     },
+    bottomPattern: {
+      type: 'circles',
+      cellSize: 5,
+      wallThickness: 1.2,
+      margin: 3,
+    },
   },
 };

@@ -113,6 +113,34 @@ const createUnionOrNull = (geometries: ScadObject[]) =>
     O.toNullable,
   );
 
+export function createSocketExclusionZones(
+  plateWidth: number,
+  plateHeight: number,
+  config: KeyboardConfig,
+): ScadObject | null {
+  const wallThickness = config.enclosure.walls.thickness;
+
+  return pipe(
+    config.enclosure.bottomPadsSockets ?? [],
+    O.fromPredicate((sockets) => sockets.length > 0),
+    O.map((sockets) => {
+      const exclusionShapes = pipe(
+        sockets,
+        A.map((socket) => {
+          const socketBoundary = calculateSocketBoundary(socket);
+          const position = calculateAnchorPosition(socket, plateWidth, plateHeight, wallThickness, socketBoundary);
+          const { reinforcementShape } = createSocketShapes(socket);
+
+          return reinforcementShape.translate([position.x, position.y, 0]);
+        }),
+      );
+
+      return union(...exclusionShapes);
+    }),
+    O.toNullable,
+  );
+}
+
 export function createSiliconPadSocketStructures(
   plateWidth: number,
   plateHeight: number,

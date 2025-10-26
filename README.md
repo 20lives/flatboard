@@ -403,7 +403,7 @@ Upcoming enhancements planned for future releases:
 
 - **Web UI** - Browser-based visual configurator for designing keyboards without editing code
 - **Multi-row thumb clusters** - Support for complex thumb layouts with multiple rows
-- **Patterned bottom** - Honeycomb or lattice patterns for weight reduction and material optimization
+- ~~**Patterned bottom** - Honeycomb or lattice patterns for weight reduction and material optimization~~
 - **Non-rectangular enclosures** - Organic and curved case shapes beyond rectangular boxes
 - **Trackpad/trackpoint support** - Integrated pointing device mounting and cutouts
 - **screws standoffs** - instead of snap-fit.
