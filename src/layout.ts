@@ -149,16 +149,50 @@ function applyGlobalRotation(keyPlacements: KeyPlacement[], config: KeyboardConf
   }));
 }
 
+function mirrorLayout(keyPlacements: KeyPlacement[], centerGap: number, maxKeySize: number): KeyPlacement[] {
+  // Calculate the bounds of the original layout
+  const yCoordinates = keyPlacements.map(({ pos }) => pos.y);
+  const maxY = Math.max(...yCoordinates);
+  const minY = Math.min(...yCoordinates);
+
+  // The center of the original layout
+  const centerY = (maxY + minY) / 2;
+
+  // Offset to move left half down and right half up
+  const halfExtent = (maxY - minY) / 2 + maxKeySize / 2;
+  const halfGap = centerGap / 2;
+
+  const leftHalf = keyPlacements.map(({ pos, rot }) => ({
+    pos: { x: pos.x, y: -(pos.y - centerY) - halfGap - halfExtent },
+    rot: -rot,
+  }));
+
+  const rightHalf = keyPlacements.map(({ pos, rot }) => ({
+    pos: { x: pos.x, y: (pos.y - centerY) + halfGap + halfExtent },
+    rot,
+  }));
+
+  return pipe(
+    leftHalf,
+    A.concat(rightHalf),
+  );
+}
+
 export function getLayout(config: KeyboardConfig): KeyPlacement[] {
   const rotatedKeys = applyGlobalRotation(buildLayout(config), config);
-  const bounds = calculateKeyBounds(rotatedKeys, config.switch.cutout.outer);
+
+  const finalKeys = config.layout.mode === 'unibody' && config.layout.centerGap !== undefined
+    ? mirrorLayout(rotatedKeys, config.layout.centerGap, config.switch.cutout.outer)
+    : rotatedKeys;
+
+  const bounds = calculateKeyBounds(finalKeys, config.switch.cutout.outer);
   const { edgeMargin } = config.layout;
   const wallThickness = config.enclosure.walls.thickness;
 
   const offsetX = -bounds.minX + edgeMargin + wallThickness;
   const offsetY = -bounds.minY + edgeMargin + wallThickness;
 
-  return rotatedKeys.map(({ rot, pos }) => ({
+  return finalKeys.map(({ rot, pos }) => ({
     rot,
     pos: {
       x: pos.x + offsetX,
