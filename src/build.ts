@@ -90,7 +90,8 @@ export function build(generateStlFiles = false, profileName: string, isDevMode =
       const { statSync } = require('node:fs');
       const { basename } = require('node:path');
 
-      console.log(`Generated files for profile: ${profileName}`);
+      const layoutMode = CONFIG.layout.mode === 'unibody' ? 'unibody' : 'split';
+      console.log(`Generated files for profile: ${profileName} [${layoutMode}]`);
       console.log(`  • Keyboard size: ${allKeyPlacements.length} keys`);
       console.log(`  • Plate dimensions: ${plateWidth.toFixed(1)}×${plateHeight.toFixed(1)}mm`);
       console.log(`\n${outputDir}/`);
@@ -114,6 +115,7 @@ const formatProfileInfo = (name: string) => {
   const rowLayout = finalConfig.layout.matrix.rowLayout;
   const thumbKeys = finalConfig.thumb?.cluster?.keys ?? 0;
   const switchType = finalConfig.switch.type;
+  const layoutMode = finalConfig.layout.mode;
 
   if (!rowLayout || rowLayout.length === 0) {
     return `  • ${name}: ERROR - No rowLayout defined`;
@@ -122,11 +124,13 @@ const formatProfileInfo = (name: string) => {
   const matrixKeys = rowLayout.reduce((sum, row) => sum + row.length, 0);
   const layoutPattern = rowLayout.map((row) => `${row.start}:${row.length}`).join(',');
   const layoutDescription = `{${layoutPattern}}`;
-  const totalKeys = matrixKeys + thumbKeys;
+  const singleSideKeys = matrixKeys + thumbKeys;
+  const totalKeys = layoutMode === 'unibody' ? singleSideKeys * 2 : singleSideKeys;
   const thumbInfo = thumbKeys > 0 ? ` + ${thumbKeys} thumbs` : '';
   const switchInfo = ` [${switchType}]`;
+  const modeInfo = ` (${layoutMode})`;
 
-  return `  • ${name}: ${totalKeys} keys ${layoutDescription}${thumbInfo}${switchInfo}`;
+  return `  • ${name}: ${totalKeys} keys ${layoutDescription}${thumbInfo}${switchInfo}${modeInfo}`;
 };
 
 export function listProfiles() {

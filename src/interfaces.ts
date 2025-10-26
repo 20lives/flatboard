@@ -17,6 +17,8 @@ export interface LayoutConfig {
   matrix: MatrixConfig;
   edgeMargin: number;
   baseDegrees: number;
+  mode: 'split' | 'unibody';
+  centerGap?: number;
 }
 
 export interface SwitchConfig {
@@ -140,6 +142,8 @@ export interface ParameterProfile {
     };
     edgeMargin?: number;
     baseDegrees?: number;
+    mode?: 'split' | 'unibody';
+    centerGap?: number;
   };
   switch?: {
     type?: 'choc' | 'mx';

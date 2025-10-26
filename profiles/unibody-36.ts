@@ -2,7 +2,8 @@ import type { ParameterProfile } from '../src/interfaces.js';
 
 export const profile: ParameterProfile = {
   layout: {
-    mode: 'split',
+    mode: 'unibody',
+    centerGap: 35,
     matrix: {
       rowLayout: [
         { start: 0, length: 3, offset: 5, thumbAnchor: 2 },
@@ -81,14 +82,14 @@ export const profile: ParameterProfile = {
     {
       type: 'usbC',
       enabled: true,
-      face: 'left',
-      position: 0.95,
+      face: 'top',
+      position: 0.5,
       clearance: 0.2,
     },
     {
       type: 'powerButton',
       enabled: true,
-      face: 'top',
+      face: 'bottom',
       position: 0.1,
       clearance: 0.2,
     },

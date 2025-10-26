@@ -2,6 +2,7 @@ import type { ParameterProfile } from '../src/interfaces.js';
 
 export const profile: ParameterProfile = {
   layout: {
+    mode: 'split',
     matrix: {
       rowLayout: [
         { start: 0, length: 3, offset: 0 },
