@@ -1,10 +1,10 @@
-import { difference, union, type ScadObject } from 'scad-js';
-import type { KeyboardConfig, KeyPlacement, Point2D } from './interfaces.js';
+import * as A from 'fp-ts/Array';
+import { pipe } from 'fp-ts/function';
+import { difference, type ScadObject, union } from 'scad-js';
 import { createAllConnectors } from './connector.js';
+import type { KeyboardConfig, KeyPlacement, Point2D } from './interfaces.js';
 import { createAllSwitchCutouts } from './switch-sockets.js';
 import { createRoundedSquare } from './utils.js';
-import { pipe } from 'fp-ts/function';
-import * as A from 'fp-ts/Array';
 
 const createOuterWallBox = (
   outerWidth: number,

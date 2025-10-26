@@ -1,8 +1,8 @@
+import * as A from 'fp-ts/Array';
+import { pipe } from 'fp-ts/function';
+import * as O from 'fp-ts/Option';
 import type { KeyboardConfig, KeyPlacement } from './interfaces.js';
 import { calculateAbsoluteCosineSine, calculateHalfIndex, convertDegreesToRadians, rotatePoint } from './utils.js';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import { pipe } from 'fp-ts/function';
 
 function calculateKeyBounds(keyPlacements: KeyPlacement[], maxKeySize: number) {
   const coordinatePairs = pipe(
@@ -35,7 +35,6 @@ function calculateKeyBounds(keyPlacements: KeyPlacement[], maxKeySize: number) {
   };
 }
 
-// Helper functions for pure functional approach
 const createMatrixKey = (
   rowIndex: number,
   keyIndex: number,

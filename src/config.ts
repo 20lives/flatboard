@@ -1,15 +1,10 @@
-/**
- * Main configuration factory and exports
- * Orchestrates the modular configuration system
- */
-
+import * as E from 'fp-ts/Either';
+import { pipe } from 'fp-ts/function';
+import * as O from 'fp-ts/Option';
 import type { KeyboardConfig, ParameterProfile } from './interfaces.js';
 import { KEYBOARD_PROFILES } from './profile-loader.js';
 import { SWITCH_SPECS } from './switches.js';
 import { deepMerge } from './utils.js';
-import * as E from 'fp-ts/Either';
-import * as O from 'fp-ts/Option';
-import { pipe } from 'fp-ts/function';
 
 export * from './connector-specs.js';
 export * from './interfaces.js';
@@ -56,8 +51,6 @@ function createFinalConfig(profileName: string): KeyboardConfig {
 }
 
 const createConfigFromProfile = (params: ParameterProfile): KeyboardConfig => {
-  // After merging profile with switch spec, all required fields should be present
-  // TypeScript doesn't track this, so we use type assertion
   return params as unknown as KeyboardConfig;
 };
 

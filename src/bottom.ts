@@ -1,11 +1,10 @@
-import { difference, union, hull, type ScadObject } from 'scad-js';
-import type { KeyboardConfig } from './interfaces.js';
-import { createRoundedSquare } from './utils.js';
-import { createAllConnectors } from './connector.js';
-import { createSiliconPadSocketStructures } from './bottom-pads-sockets.js';
-
 import * as A from 'fp-ts/Array';
 import { pipe } from 'fp-ts/function';
+import { difference, hull, type ScadObject, union } from 'scad-js';
+import { createSiliconPadSocketStructures } from './bottom-pads-sockets.js';
+import { createAllConnectors } from './connector.js';
+import type { KeyboardConfig } from './interfaces.js';
+import { createRoundedSquare } from './utils.js';
 
 const createConnectorCutouts = (
   plateWidth: number,

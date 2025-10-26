@@ -1,12 +1,12 @@
 import { writeFileSync } from 'node:fs';
-import { union, type ScadObject } from 'scad-js';
-import { generateBottomCase } from './bottom.js';
-import { createConfig } from './config.js';
-import { KEYBOARD_PROFILES } from './profile-loader.js';
-import { calculatePlateDimensions, getLayout } from './layout.js';
-import { generateKeyboardPlate } from './top.js';
 import * as A from 'fp-ts/Array';
 import { pipe } from 'fp-ts/function';
+import { type ScadObject, union } from 'scad-js';
+import { generateBottomCase } from './bottom.js';
+import { createConfig } from './config.js';
+import { calculatePlateDimensions, getLayout } from './layout.js';
+import { KEYBOARD_PROFILES } from './profile-loader.js';
+import { generateKeyboardPlate } from './top.js';
 
 function buildWithConfig(profileName: string) {
   const CONFIG = createConfig(profileName);
@@ -57,10 +57,8 @@ export function build(generateStlFiles = false, profileName: string, isDevMode =
 
   const OPENSCAD_RESOLUTION = CONFIG.output?.openscad?.resolution ?? 64;
 
-  // Determine output directory
   const outputDir = isDevMode ? './dist' : `./dist/${profileName}-${getTimestampHash()}`;
 
-  // Create directory if it doesn't exist (for production builds)
   if (!isDevMode) {
     const { mkdirSync } = require('node:fs');
     mkdirSync(outputDir, { recursive: true });
@@ -76,32 +74,34 @@ export function build(generateStlFiles = false, profileName: string, isDevMode =
     const scadPath = `${outputDir}/${file.fileName}.scad`;
     writeFileSync(scadPath, file.modelGeometry.serialize({ $fn: OPENSCAD_RESOLUTION }));
 
+    const createdFiles = [scadPath];
+
     if (generateStlFiles) {
       const stlPath = `${outputDir}/${file.fileName}.stl`;
       writeFileSync(stlPath, await file.modelGeometry.render({ $fn: OPENSCAD_RESOLUTION }));
+      createdFiles.push(stlPath);
     }
 
-    return scadPath;
+    return createdFiles;
   });
 
   Promise.all(fileWritePromises)
-    .then((paths) => {
+    .then((filePaths) => {
       const { statSync } = require('node:fs');
-      const { readdirSync } = require('node:fs');
+      const { basename } = require('node:path');
 
       console.log(`Generated files for profile: ${profileName}`);
       console.log(`  • Keyboard size: ${allKeyPlacements.length} keys`);
       console.log(`  • Plate dimensions: ${plateWidth.toFixed(1)}×${plateHeight.toFixed(1)}mm`);
       console.log(`\n${outputDir}/`);
 
-      // List all files in output directory
-      const files = readdirSync(outputDir).sort();
-      files.forEach((file, index) => {
-        const isLast = index === files.length - 1;
+      const allFiles = filePaths.flat().sort();
+      allFiles.forEach((filePath, index) => {
+        const isLast = index === allFiles.length - 1;
         const prefix = isLast ? '└──' : '├──';
-        const stats = statSync(`${outputDir}/${file}`);
+        const stats = statSync(filePath);
         const sizeKB = (stats.size / 1024).toFixed(1);
-        console.log(`${prefix} ${file} (${sizeKB}K)`);
+        console.log(`${prefix} ${basename(filePath)} (${sizeKB}K)`);
       });
     })
     .catch((error) => {
@@ -109,10 +109,6 @@ export function build(generateStlFiles = false, profileName: string, isDevMode =
     });
 }
 
-/**
- * Lists all available keyboard profiles
- */
-// Pure function to format profile info
 const formatProfileInfo = (name: string) => {
   const finalConfig = createConfig(name);
   const rowLayout = finalConfig.layout.matrix.rowLayout;

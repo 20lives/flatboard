@@ -406,6 +406,7 @@ Upcoming enhancements planned for future releases:
 - **Patterned bottom** - Honeycomb or lattice patterns for weight reduction and material optimization
 - **Non-rectangular enclosures** - Organic and curved case shapes beyond rectangular boxes
 - **Trackpad/trackpoint support** - Integrated pointing device mounting and cutouts
+- **screws standoffs** - instead of snap-fit.
 
 Have a feature request? Open an issue on GitHub!
 

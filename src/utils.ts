@@ -1,10 +1,10 @@
-import type { Point2D } from './interfaces.js';
-import { hull, circle } from 'scad-js';
 import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import { pipe } from 'fp-ts/function';
+import * as O from 'fp-ts/Option';
 import type { Predicate } from 'fp-ts/Predicate';
+import { circle, hull } from 'scad-js';
+import type { Point2D } from './interfaces.js';
 
 const isPlainObject: Predicate<unknown> = (value: unknown): value is Record<string, unknown> =>
   pipe(
@@ -96,9 +96,7 @@ type RoundedSquareParams = {
   cornerRadius?: number;
 };
 
-const validateRoundedSquareParams = (
-  params: RoundedSquareParams,
-): E.Either<string, Required<RoundedSquareParams>> => {
+const validateRoundedSquareParams = (params: RoundedSquareParams): E.Either<string, Required<RoundedSquareParams>> => {
   const { width, height, cornerRadius = 1 } = params;
 
   if (width <= 0) return E.left('Width must be positive');

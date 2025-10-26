@@ -1,8 +1,8 @@
-import { cylinder, hull, cube } from 'scad-js';
-import { CONNECTOR_SPECS } from './config.js';
-import type { ConnectorConfig, ConnectorSpec, KeyboardConfig } from './interfaces.js';
 import * as A from 'fp-ts/Array';
 import { pipe } from 'fp-ts/function';
+import { cube, cylinder, hull } from 'scad-js';
+import { CONNECTOR_SPECS } from './config.js';
+import type { ConnectorConfig, ConnectorSpec, KeyboardConfig } from './interfaces.js';
 
 export type ConnectorFace = 'top' | 'bottom' | 'left' | 'right';
 
@@ -26,10 +26,6 @@ export function calculateConnectorPosition(
 
   const z = (wallsHeight + topThickness - bottomThickness) / 2;
 
-  // Coordinate system is rotated 90° clockwise: logical faces map differently
-  // User "bottom" → Physical "right", User "right" → Physical "bottom"
-  // User "left" → Physical "top", User "top" → Physical "left"
-  // Rotations also need -90° adjustment to compensate
   const positionCalculators = {
     top: () => ({
       x: wallThickness,

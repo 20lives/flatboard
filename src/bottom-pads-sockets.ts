@@ -1,27 +1,14 @@
-import { difference, union, circle, square, type ScadObject } from 'scad-js';
-import type { KeyboardConfig, SiliconPadSocket } from './interfaces.js';
 import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
 import { pipe } from 'fp-ts/function';
-
-/**
- * Creates reinforced silicon pad socket structures with anchor-based positioning
- *
- * Features:
- * - Anchor-based positioning (top-left, top-right, bottom-left, bottom-right, center)
- * - Size-aware boundary calculations including reinforcement and wall thickness
- * - Additive reinforcement (thickness and height added to socket dimensions)
- * - Support for round and square socket shapes
- */
+import * as O from 'fp-ts/Option';
+import { circle, difference, type ScadObject, square, union } from 'scad-js';
+import type { KeyboardConfig, SiliconPadSocket } from './interfaces.js';
 
 export interface SocketStructures {
   reinforcements: ScadObject | null;
   cutouts: ScadObject | null;
 }
 
-/**
- * Calculate socket boundary including reinforcement for anchor positioning
- */
 function calculateSocketBoundary(socket: SiliconPadSocket): number {
   const boundaryCalculators = {
     round: () => {
@@ -41,9 +28,6 @@ function calculateSocketBoundary(socket: SiliconPadSocket): number {
   return boundaryCalculators[socket.shape]();
 }
 
-/**
- * Calculate anchor position placing socket center at external plate edge
- */
 function calculateAnchorPosition(
   socket: SiliconPadSocket,
   plateWidth: number,
@@ -51,7 +35,6 @@ function calculateAnchorPosition(
   wallThickness: number,
   socketBoundary: number,
 ): { x: number; y: number } {
-  // External plate dimensions include walls
   const externalWidth = plateWidth + 2 * wallThickness;
   const externalHeight = plateHeight + 2 * wallThickness;
 
@@ -72,9 +55,6 @@ function calculateAnchorPosition(
   };
 }
 
-/**
- * Create socket shape geometry (inner cutout and outer reinforcement)
- */
 function createSocketShapes(socket: SiliconPadSocket): { socketShape: ScadObject; reinforcementShape: ScadObject } {
   const shapeCreators = {
     round: () => {
@@ -93,7 +73,9 @@ function createSocketShapes(socket: SiliconPadSocket): { socketShape: ScadObject
 
       return {
         socketShape: square([width, height], { center: true }),
-        reinforcementShape: square([width + 2 * additionalThickness, height + 2 * additionalThickness], { center: true }),
+        reinforcementShape: square([width + 2 * additionalThickness, height + 2 * additionalThickness], {
+          center: true,
+        }),
       };
     },
   };
@@ -131,9 +113,6 @@ const createUnionOrNull = (geometries: ScadObject[]) =>
     O.toNullable,
   );
 
-/**
- * Main function to create silicon pad socket structures
- */
 export function createSiliconPadSocketStructures(
   plateWidth: number,
   plateHeight: number,

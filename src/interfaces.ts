@@ -1,12 +1,6 @@
-/**
- * TypeScript interfaces and types for the keyboard configuration system
- */
-
-// Basic types
 export type Point2D = { x: number; y: number };
 export type KeyPlacement = { pos: Point2D; rot: number };
 
-// Row layout configuration
 export interface RowLayoutItem {
   start: number; // Starting grid position for this row
   length: number; // Number of keys in this row
@@ -14,20 +8,17 @@ export interface RowLayoutItem {
   thumbAnchor?: number; // Optional thumb anchor key index for this row
 }
 
-// Matrix layout configuration
 export interface MatrixConfig {
   rowLayout: RowLayoutItem[];
   spacing: number;
 }
 
-// Layout configuration
 export interface LayoutConfig {
   matrix: MatrixConfig;
   edgeMargin: number;
   baseDegrees: number;
 }
 
-// Switch configuration
 export interface SwitchConfig {
   type: 'choc' | 'mx';
   cutout: {
@@ -42,7 +33,6 @@ export interface SwitchConfig {
   };
 }
 
-// Thumb cluster configuration
 export interface ThumbConfig {
   cluster: {
     keys: number;
@@ -56,7 +46,6 @@ export interface ThumbConfig {
   };
 }
 
-// Silicon pad socket configuration
 export interface SiliconPadSocket {
   shape: 'round' | 'square';
   size: {
@@ -70,41 +59,37 @@ export interface SiliconPadSocket {
     offset: Point2D; // Offset from anchor position
   };
   reinforcement?: {
-    thickness?: number; // Additional reinforcement rim thickness beyond socket size (default: 2mm for round, 1.5mm for square)
-    height?: number; // Additional reinforcement height beyond socket depth (default: 1mm)
+    thickness?: number; 
+    height?: number; 
   };
 }
 
-// Enclosure configuration
 export interface EnclosureConfig {
   plate: {
-    topThickness: number; // Top switch mounting plate thickness
-    bottomThickness: number; // Bottom case floor thickness
+    topThickness: number; 
+    bottomThickness: number; 
   };
   walls: {
-    thickness: number; // Perimeter wall thickness
-    height: number; // Wall height extending down from top plate
+    thickness: number;
+    height: number;
   };
-  bottomPadsSockets?: SiliconPadSocket[]; // Optional silicon pad sockets for bottom plate
+  bottomPadsSockets?: SiliconPadSocket[];
 }
 
-// Connector configuration
 export interface ConnectorConfig {
-  type: string; // Will be typed more specifically in connectors.ts
+  type: string;
   enabled: boolean;
   face: 'top' | 'bottom' | 'left' | 'right';
   position: number;
   clearance: number;
 }
 
-// Output configuration
 export interface OutputConfig {
   openscad: {
     resolution: number;
   };
 }
 
-// Complete keyboard configuration interface
 export interface KeyboardConfig {
   layout: LayoutConfig;
   switch: SwitchConfig;
@@ -114,7 +99,6 @@ export interface KeyboardConfig {
   output: OutputConfig;
 }
 
-// Switch specification interface for switch definitions
 export interface SwitchSpec {
   description: string;
   switch: {
@@ -136,7 +120,6 @@ export interface SwitchSpec {
   };
 }
 
-// Connector specification interface for connector definitions
 export interface ConnectorSpec {
   description: string;
   geometry: {
@@ -150,7 +133,6 @@ export interface ConnectorSpec {
   };
 }
 
-// Parameter profile type for partial configuration overrides
 export interface ParameterProfile {
   layout?: {
     matrix?: {

@@ -1,5 +1,5 @@
 import { build, listProfiles } from './build.js';
-import { profileExists, getProfileNames } from './profile-loader.js';
+import { getProfileNames, profileExists } from './profile-loader.js';
 
 const args = process.argv.slice(2);
 const [command, ...commandArgs] = args;
