@@ -61,21 +61,29 @@ export interface SiliconPadSocket {
     offset: Point2D; // Offset from anchor position
   };
   reinforcement?: {
-    thickness?: number; 
-    height?: number; 
+    thickness?: number;
+    height?: number;
   };
+}
+
+export interface BottomPatternConfig {
+  type: 'honeycomb' | 'circles' | 'square';
+  cellSize: number;
+  wallThickness: number;
+  margin: number;
 }
 
 export interface EnclosureConfig {
   plate: {
-    topThickness: number; 
-    bottomThickness: number; 
+    topThickness: number;
+    bottomThickness: number;
   };
   walls: {
     thickness: number;
     height: number;
   };
   bottomPadsSockets?: SiliconPadSocket[];
+  bottomPattern?: BottomPatternConfig;
 }
 
 export interface ConnectorConfig {
@@ -170,6 +178,7 @@ export interface ParameterProfile {
       height?: number;
     };
     bottomPadsSockets?: SiliconPadSocket[];
+    bottomPattern?: BottomPatternConfig;
   };
   connectors?: ConnectorConfig[];
   output?: {

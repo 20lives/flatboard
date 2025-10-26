@@ -1,7 +1,9 @@
 import * as A from 'fp-ts/Array';
 import { pipe } from 'fp-ts/function';
+import * as O from 'fp-ts/Option';
 import { difference, hull, type ScadObject, union } from 'scad-js';
-import { createSiliconPadSocketStructures } from './bottom-pads-sockets.js';
+import { createSiliconPadSocketStructures, createSocketExclusionZones } from './bottom-pads-sockets.js';
+import { createBottomPattern } from './bottom-patterns.js';
 import { createAllConnectors } from './connector.js';
 import type { KeyboardConfig } from './interfaces.js';
 import { createRoundedSquare } from './utils.js';
@@ -80,9 +82,21 @@ export function generateBottomCase(plateWidth: number, plateHeight: number, conf
 
   const socketStructures = createSiliconPadSocketStructures(plateWidth, plateHeight, bottomThickness, config);
 
+  const socketExclusions = createSocketExclusionZones(plateWidth, plateHeight, config);
+
+  const patternCutout = pipe(
+    createBottomPattern(dimensions.outerWidth, dimensions.outerHeight, config),
+    O.map((pattern2D) => {
+      const patternWithExclusions = socketExclusions ? difference(pattern2D, socketExclusions) : pattern2D;
+      return patternWithExclusions.linear_extrude(bottomThickness + 0.2).translate([0, 0, -0.1]);
+    }),
+    O.toNullable,
+  );
+
   return pipe(
     baseGeometry,
     (geometry) => (socketStructures.reinforcements ? union(geometry, socketStructures.reinforcements) : geometry),
+    (geometry) => (patternCutout ? difference(geometry, patternCutout) : geometry),
     (geometry) => (connectorCutouts ? difference(geometry, connectorCutouts) : geometry),
     (geometry) => (socketStructures.cutouts ? difference(geometry, socketStructures.cutouts) : geometry),
   );

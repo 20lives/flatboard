@@ -76,6 +76,12 @@ export const profile: ParameterProfile = {
         reinforcement: { thickness: 1, height: 0.2 },
       },
     ],
+    bottomPattern: {
+      type: 'honeycomb',
+      cellSize: 12,
+      wallThickness: 4,
+      margin: 5,
+    },
   },
   connectors: [
     {
