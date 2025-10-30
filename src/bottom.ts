@@ -5,7 +5,8 @@ import { difference, hull, type ScadObject, union } from 'scad-js';
 import { createSiliconPadSocketStructures, createSocketExclusionZones } from './bottom-pads-sockets.js';
 import { createBottomPattern } from './bottom-patterns.js';
 import { createAllConnectors } from './connector.js';
-import type { KeyboardConfig } from './interfaces.js';
+import type { KeyboardConfig, KeyPlacement } from './interfaces.js';
+import { createOrganicBase } from './organic-case.js';
 import { createRoundedSquare } from './utils.js';
 
 const createConnectorCutouts = (
@@ -43,30 +44,54 @@ const createConnectorCutouts = (
   ]);
 };
 
-export function generateBottomCase(plateWidth: number, plateHeight: number, config: KeyboardConfig) {
+export function generateBottomCase(
+  plateWidth: number,
+  plateHeight: number,
+  keyPlacements: KeyPlacement[],
+  config: KeyboardConfig,
+) {
   const wallThickness = config.enclosure.walls.thickness;
   const bottomThickness = config.enclosure.plate.bottomThickness;
   const topWallHeight = config.enclosure.walls.height;
   const plateThickness = config.enclosure.plate.topThickness;
   const totalHeight = plateThickness + topWallHeight;
+  const caseStyle = config.enclosure.caseStyle ?? 'rectangular';
 
   const dimensions = {
     outerWidth: plateWidth + 2 * wallThickness,
     outerHeight: plateHeight + 2 * wallThickness,
   };
 
-  const squares = {
-    outer: createRoundedSquare(dimensions.outerWidth, dimensions.outerHeight),
-    base: createRoundedSquare(plateWidth, plateHeight),
-    inner: createRoundedSquare(plateWidth - 2 * wallThickness, plateHeight - 2 * wallThickness),
+  // Object literal pattern for case style selection
+  const baseGeometryCreators = {
+    rectangular: () => {
+      const squares = {
+        outer: createRoundedSquare(dimensions.outerWidth, dimensions.outerHeight),
+        base: createRoundedSquare(plateWidth, plateHeight),
+        inner: createRoundedSquare(plateWidth - 2 * wallThickness, plateHeight - 2 * wallThickness),
+      };
+
+      return union(
+        squares.outer.linear_extrude(bottomThickness),
+        difference(squares.base, squares.inner)
+          .linear_extrude(totalHeight - plateThickness)
+          .translate_z(bottomThickness),
+      ).translate([dimensions.outerWidth / 2, dimensions.outerHeight / 2, 0]);
+    },
+    organic: () =>
+      createOrganicBase(
+        keyPlacements,
+        config.switch.cutout.outer,
+        config.layout.edgeMargin,
+        wallThickness,
+        bottomThickness,
+        topWallHeight,
+        plateThickness,
+        config.enclosure.organicCornerRadius ?? 0,
+      ),
   };
 
-  const baseGeometry = union(
-    squares.outer.linear_extrude(bottomThickness),
-    difference(squares.base, squares.inner)
-      .linear_extrude(totalHeight - plateThickness)
-      .translate_z(bottomThickness),
-  ).translate([dimensions.outerWidth / 2, dimensions.outerHeight / 2, 0]);
+  const baseGeometry = baseGeometryCreators[caseStyle]();
 
   const offset = wallThickness;
 

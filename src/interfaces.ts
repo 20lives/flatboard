@@ -82,6 +82,8 @@ export interface EnclosureConfig {
     thickness: number;
     height: number;
   };
+  caseStyle?: 'rectangular' | 'organic';
+  organicCornerRadius?: number;
   bottomPadsSockets?: SiliconPadSocket[];
   bottomPattern?: BottomPatternConfig;
 }
@@ -177,6 +179,8 @@ export interface ParameterProfile {
       thickness?: number;
       height?: number;
     };
+    caseStyle?: 'rectangular' | 'organic';
+    organicCornerRadius?: number;
     bottomPadsSockets?: SiliconPadSocket[];
     bottomPattern?: BottomPatternConfig;
   };

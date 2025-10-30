@@ -3,6 +3,7 @@ import { pipe } from 'fp-ts/function';
 import { difference, type ScadObject, union } from 'scad-js';
 import { createAllConnectors } from './connector.js';
 import type { KeyboardConfig, KeyPlacement, Point2D } from './interfaces.js';
+import { createOrganicWallBox } from './organic-case.js';
 import { createAllSwitchCutouts } from './switch-sockets.js';
 import { createRoundedSquare } from './utils.js';
 
@@ -63,12 +64,29 @@ export function generateKeyboardPlate(
   const { thickness: wallThickness, height: topWallHeight } = config.enclosure.walls;
   const plateThickness = config.enclosure.plate.topThickness;
   const { outer, inner, height, startHeight } = config.switch.cutout;
+  const caseStyle = config.enclosure.caseStyle ?? 'rectangular';
 
   const totalHeight = plateThickness + topWallHeight;
   const outerWidth = plateWidth + 2 * wallThickness;
   const outerHeight = plateHeight + 2 * wallThickness;
 
-  const wallBox = createOuterWallBox(outerWidth, outerHeight, plateWidth, plateHeight, totalHeight, plateThickness);
+  // Object literal pattern for case style selection
+  const wallBoxCreators = {
+    rectangular: () =>
+      createOuterWallBox(outerWidth, outerHeight, plateWidth, plateHeight, totalHeight, plateThickness),
+    organic: () =>
+      createOrganicWallBox(
+        keyPlacements,
+        outer,
+        config.layout.edgeMargin,
+        wallThickness,
+        totalHeight,
+        plateThickness,
+        config.enclosure.organicCornerRadius ?? 0,
+      ),
+  };
+
+  const wallBox = wallBoxCreators[caseStyle]();
 
   const switchCutouts = createSwitchCutouts(keyPlacements, outer, plateThickness, topWallHeight - 0.05);
 

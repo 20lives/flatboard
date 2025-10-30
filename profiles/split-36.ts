@@ -12,7 +12,7 @@ export const profile: ParameterProfile = {
         { start: 0, length: 3, offset: 4 },
       ],
     },
-    edgeMargin: 8.0,
+    edgeMargin: 2.0,
     baseDegrees: 13.0,
   },
   switch: {
@@ -38,6 +38,15 @@ export const profile: ParameterProfile = {
     },
   },
   enclosure: {
+    bottomPattern: {
+      type: 'circles',
+      cellSize: 5,
+      wallThickness: 1.2,
+      margin: 3,
+
+    },
+    caseStyle: 'organic',
+    organicCornerRadius: 5.0,
     plate: {
       topThickness: 1.5,
       bottomThickness: 1.5,

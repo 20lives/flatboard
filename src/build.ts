@@ -30,8 +30,8 @@ export function buildTopPlate(profileName: string) {
 }
 
 export function buildBottomCase(profileName: string) {
-  const { CONFIG, plateWidth, plateHeight } = buildWithConfig(profileName);
-  return generateBottomCase(plateWidth, plateHeight, CONFIG);
+  const { CONFIG, allKeyPlacements, plateWidth, plateHeight } = buildWithConfig(profileName);
+  return generateBottomCase(plateWidth, plateHeight, allKeyPlacements, CONFIG);
 }
 
 export function buildCompleteEnclosure(profileName: string) {
