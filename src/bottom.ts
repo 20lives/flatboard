@@ -3,10 +3,10 @@ import { pipe } from 'fp-ts/function';
 import * as O from 'fp-ts/Option';
 import { difference, hull, type ScadObject, union } from 'scad-js';
 import { createSiliconPadSocketStructures, createSocketExclusionZones } from './bottom-pads-sockets.js';
-import { createBottomPattern } from './bottom-patterns.js';
+import { createBottomPattern, type PatternBoundary } from './bottom-patterns.js';
 import { createAllConnectors } from './connector.js';
 import type { KeyboardConfig, KeyPlacement } from './interfaces.js';
-import { createOrganicBase } from './organic-case.js';
+import { createOrganicBase, createOrganicOutline2D } from './organic-case.js';
 import { createRoundedSquare } from './utils.js';
 
 const createConnectorCutouts = (
@@ -109,8 +109,30 @@ export function generateBottomCase(
 
   const socketExclusions = createSocketExclusionZones(plateWidth, plateHeight, config);
 
+  // Calculate pattern boundary based on case style
+  const patternBoundary: PatternBoundary =
+    caseStyle === 'organic' && config.enclosure.bottomPattern
+      ? {
+          type: 'organic',
+          boundary: pipe(
+            config.enclosure.bottomPattern.margin,
+            (margin) =>
+              createOrganicOutline2D(
+                keyPlacements,
+                config.switch.cutout.outer,
+                config.layout.edgeMargin + wallThickness - margin,
+                config.enclosure.organicCornerRadius ?? 0,
+              ),
+          ),
+        }
+      : {
+          type: 'rectangular',
+          width: dimensions.outerWidth,
+          height: dimensions.outerHeight,
+        };
+
   const patternCutout = pipe(
-    createBottomPattern(dimensions.outerWidth, dimensions.outerHeight, config),
+    createBottomPattern(patternBoundary, config),
     O.map((pattern2D) => {
       const patternWithExclusions = socketExclusions ? difference(pattern2D, socketExclusions) : pattern2D;
       return patternWithExclusions.linear_extrude(bottomThickness + 0.2).translate([0, 0, -0.1]);

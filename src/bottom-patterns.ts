@@ -4,6 +4,15 @@ import { circle, intersection, square, type ScadObject, union } from 'scad-js';
 import type { BottomPatternConfig, KeyboardConfig } from './interfaces.js';
 import { createRoundedSquare } from './utils.js';
 
+/**
+ * Pattern boundary can be either:
+ * - Rectangular: width/height dimensions (will be centered)
+ * - Organic: pre-positioned 2D ScadObject outline
+ */
+export type PatternBoundary =
+  | { type: 'rectangular'; width: number; height: number }
+  | { type: 'organic'; boundary: ScadObject };
+
 function createHoneycombPattern(
   patternWidth: number,
   patternHeight: number,
@@ -104,8 +113,7 @@ function createSquarePattern(
 }
 
 export function createBottomPattern(
-  outerWidth: number,
-  outerHeight: number,
+  boundary: PatternBoundary,
   config: KeyboardConfig,
 ): O.Option<ScadObject> {
   return pipe(
@@ -113,23 +121,51 @@ export function createBottomPattern(
     O.fromNullable,
     O.chain((patternConfig) => {
       const { margin } = patternConfig;
-      const patternWidth = outerWidth - 2 * margin;
-      const patternHeight = outerHeight - 2 * margin;
 
-      const patternGenerators: Record<string, () => ScadObject | null> = {
-        honeycomb: () => createHoneycombPattern(patternWidth, patternHeight, patternConfig),
-        circles: () => createCirclesPattern(patternWidth, patternHeight, patternConfig),
-        square: () => createSquarePattern(patternWidth, patternHeight, patternConfig),
-      };
+      if (boundary.type === 'rectangular') {
+        // Rectangular case: use exact dimensions with margin
+        const { width: outerWidth, height: outerHeight } = boundary;
+        const patternWidth = outerWidth - 2 * margin;
+        const patternHeight = outerHeight - 2 * margin;
 
-      const generator = patternGenerators[patternConfig.type];
-      const pattern2D = generator();
+        const patternGenerators: Record<string, () => ScadObject | null> = {
+          honeycomb: () => createHoneycombPattern(patternWidth, patternHeight, patternConfig),
+          circles: () => createCirclesPattern(patternWidth, patternHeight, patternConfig),
+          square: () => createSquarePattern(patternWidth, patternHeight, patternConfig),
+        };
 
-      return pipe(
-        pattern2D,
-        O.fromNullable,
-        O.map((p) => p.translate([outerWidth / 2, outerHeight / 2, 0])),
-      );
+        const generator = patternGenerators[patternConfig.type];
+        const pattern2D = generator();
+
+        return pipe(
+          pattern2D,
+          O.fromNullable,
+          O.map((p) => p.translate([outerWidth / 2, outerHeight / 2, 0])),
+        );
+      } else {
+        // Organic case: generate large pattern and clip to boundary
+        const { boundary: organicBoundary } = boundary;
+
+        // Use generous pattern area to ensure full coverage
+        // Pattern will be clipped to organic shape via intersection
+        const patternWidth = 300;
+        const patternHeight = 300;
+
+        const patternGenerators: Record<string, () => ScadObject | null> = {
+          honeycomb: () => createHoneycombPattern(patternWidth, patternHeight, patternConfig),
+          circles: () => createCirclesPattern(patternWidth, patternHeight, patternConfig),
+          square: () => createSquarePattern(patternWidth, patternHeight, patternConfig),
+        };
+
+        const generator = patternGenerators[patternConfig.type];
+        const pattern2D = generator();
+
+        return pipe(
+          pattern2D,
+          O.fromNullable,
+          O.map((p) => intersection(p, organicBoundary)),
+        );
+      }
     }),
   );
 }
