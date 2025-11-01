@@ -83,6 +83,9 @@ export function generateKeyboardPlate(
         totalHeight,
         plateThickness,
         config.enclosure.organicCornerRadius ?? 0,
+        config.enclosure.organicSectionSize,
+        config.enclosure.organicSectionOffset,
+        config.enclosure.poleVisualization,
       ),
   };
 

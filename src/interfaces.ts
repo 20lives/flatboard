@@ -73,6 +73,15 @@ export interface BottomPatternConfig {
   margin: number;
 }
 
+export interface PoleVisualizationConfig {
+  enabled: boolean;
+  showAllPoles?: boolean; // Show all corner poles (white/default)
+  showExtremePoles?: boolean; // Show extreme poles that define the outline (colored by face)
+  showFaces?: ('left' | 'right' | 'top' | 'bottom')[]; // Only show extreme poles for specific faces
+  sectionSize?: number; // Axis division granularity for extreme pole finding (smaller = more detail)
+  sectionOffset?: number; // Offset to the starting position of sections (0 to sectionSize)
+}
+
 export interface EnclosureConfig {
   plate: {
     topThickness: number;
@@ -84,6 +93,9 @@ export interface EnclosureConfig {
   };
   caseStyle?: 'rectangular' | 'organic';
   organicCornerRadius?: number;
+  organicSectionSize?: number; // Section size for organic outline generation (default: keySize / 2)
+  organicSectionOffset?: number; // Section offset for organic outline generation (default: 0)
+  poleVisualization?: PoleVisualizationConfig;
   bottomPadsSockets?: SiliconPadSocket[];
   bottomPattern?: BottomPatternConfig;
 }
@@ -181,6 +193,9 @@ export interface ParameterProfile {
     };
     caseStyle?: 'rectangular' | 'organic';
     organicCornerRadius?: number;
+    organicSectionSize?: number;
+    organicSectionOffset?: number;
+    poleVisualization?: PoleVisualizationConfig;
     bottomPadsSockets?: SiliconPadSocket[];
     bottomPattern?: BottomPatternConfig;
   };

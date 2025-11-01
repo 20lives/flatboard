@@ -5,15 +5,17 @@ export const profile: ParameterProfile = {
     mode: 'split',
     matrix: {
       rowLayout: [
-        { start: 0, length: 3, offset: 5, thumbAnchor: 2 },
-        { start: 0, length: 3, offset: 1 },
-        { start: 0, length: 3, offset: 0 },
-        { start: 0, length: 3, offset: 3 },
-        { start: 0, length: 3, offset: 4 },
+        { start: 0, length: 2, offset: 5.5, thumbAnchor: 1 },       // Row 7: 0 offset
+        { start: 0, length: 3, offset: -2.382 },   // Row 6: +2.382 offset
+        { start: 0, length: 3, offset: -4.763 },   // Row 5: +4.763 offset
+        { start: 0, length: 3, offset: -7.144 },   // Row 4: +7.144 offset (anchor for thumb)
+        { start: 0, length: 3, offset: -4.763 },   // Row 3: +4.763 offset
+        { start: 0, length: 3, offset: 0 },       // Row 1: 0 offset
+        { start: 0, length: 3, offset: 0 },       // Row 2: 0 offset
       ],
     },
-    edgeMargin: 0.0,
-    baseDegrees: 13.0,
+    edgeMargin: 10.0,
+    baseDegrees: 0,
   },
   switch: {
     type: 'choc',
@@ -21,32 +23,23 @@ export const profile: ParameterProfile = {
   thumb: {
     cluster: {
       keys: 3,
-      spacing: 20.0,
-      rotation: 17.0,
+      // spacing: 18.0,
+      // rotation: 11.94,
     },
     offset: {
-      x: 25,
-      y: 2,
+      x: 26,
+      y: 27,
     },
     perKey: {
-      rotations: [-10, 0, +10],
+      rotations: [0, 11.94, 11.94 + 11.94],
       offsets: [
-        { x: 2, y: 0 },
         { x: 0, y: 0 },
-        { x: 2, y: 0 },
+        { x: 2, y: -1.5 },
+        { x: 4, y: -6 },
       ],
     },
   },
   enclosure: {
-    bottomPattern: {
-      type: 'circles',
-      cellSize: 5,
-      wallThickness: 1.2,
-      margin: 3,
-
-    },
-    caseStyle: 'organic',
-    organicCornerRadius: 0.0,
     plate: {
       topThickness: 1.5,
       bottomThickness: 1.5,
@@ -54,6 +47,22 @@ export const profile: ParameterProfile = {
     walls: {
       thickness: 1.5,
       height: 9.0,
+    },
+    caseStyle: 'organic',
+    poleVisualization: {
+      enabled: true,
+      showAllPoles: false,
+      showExtremePoles: true,
+      showFaces: ['bottom', 'top', 'left', 'right'],
+      sectionSize: 15,
+      sectionOffset: 5, 
+    },
+    organicCornerRadius: 0.0,
+    bottomPattern: {
+      type: 'honeycomb',
+      cellSize: 5,
+      wallThickness: 1.5,
+      margin: 3,
     },
     bottomPadsSockets: [
       {
@@ -85,26 +94,38 @@ export const profile: ParameterProfile = {
         reinforcement: { thickness: 1, height: 0.2 },
       },
     ],
-    bottomPattern: {
-      type: 'honeycomb',
-      cellSize: 12,
-      wallThickness: 4,
-      margin: 5,
-    },
   },
   connectors: [
     {
       type: 'usbC',
       enabled: true,
-      face: 'left',
-      position: 0.95,
+      face: 'right',
+      position: 0.5,
+      segment: 4,
       clearance: 0.2,
     },
     {
-      type: 'powerButton',
+      type: 'usbC',
       enabled: true,
       face: 'top',
-      position: 0.1,
+      position: 0.5,
+      segment: 3,
+      clearance: 0.2,
+    },
+    {
+      type: 'usbC',
+      enabled: true,
+      face: 'bottom',
+      position: 0.5,
+      segment: 0,
+      clearance: 0.2,
+    },
+    {
+      type: 'usbC',
+      enabled: true,
+      face: 'left',
+      position: 0.5,
+      segment: 0,
       clearance: 0.2,
     },
   ],

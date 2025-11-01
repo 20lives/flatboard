@@ -88,6 +88,8 @@ export function generateBottomCase(
         topWallHeight,
         plateThickness,
         config.enclosure.organicCornerRadius ?? 0,
+        config.enclosure.organicSectionSize,
+        config.enclosure.organicSectionOffset,
       ),
   };
 
@@ -122,6 +124,8 @@ export function generateBottomCase(
                 config.switch.cutout.outer,
                 config.layout.edgeMargin + wallThickness - margin,
                 config.enclosure.organicCornerRadius ?? 0,
+                config.enclosure.organicSectionSize,
+                config.enclosure.organicSectionOffset,
               ),
           ),
         }
