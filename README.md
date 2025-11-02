@@ -248,6 +248,12 @@ export const profile: ParameterProfile = {
       height: 9.0,
     },
   },
+
+  output: {
+    showSwitches: true,   // Show switches in preview
+    showKeycaps: true,    // Show keycaps in preview
+    keycapProfile: 'dsa', // Keycap style: 'dsa', 'xda', or 'none'
+  },
 };
 ```
 
@@ -355,6 +361,42 @@ connectors: [
   },
 ]
 ```
+
+### Visualization Options
+
+Control how your keyboard appears in the preview and rendered output:
+
+```typescript
+output: {
+  showSwitches: true,           // Show Cherry MX switch bodies
+  showKeycaps: true,            // Show keycaps
+  keycapProfile: 'dsa',         // Keycap profile: 'dsa', 'xda', or 'none'
+  colors: {
+    topPlate: '#b54c9e',        // Top plate color (hex or named)
+    bottomPlate: '#037da3',     // Bottom plate color (hex or named)
+    keycaps: 'WhiteSmoke',      // Keycap color (hex or named)
+  },
+}
+```
+
+**Visualization Options:**
+- `showSwitches` - Display 3D Cherry MX switch bodies in the complete assembly
+- `showKeycaps` - Display keycaps in the complete assembly
+- `keycapProfile` - Choose keycap style:
+  - `'dsa'` - Low-profile spherical top (DSA profile)
+  - `'xda'` - Flat top with slightly higher profile (XDA profile)
+  - `'none'` - No keycaps shown
+
+**Color Customization:**
+- Supports hex colors: `'#ff6b6b'`, `'#4ecdc4'`, `'#ffe66d'`
+- Supports named colors: `'Red'`, `'Blue'`, `'WhiteSmoke'`, `'Black'`, etc.
+
+**Default Colors (if not specified):**
+- Top plate: `#b54c9e` (purple/pink)
+- Bottom plate: `#037da3` (blue)
+- Keycaps: `WhiteSmoke`
+
+**Note:** Visualization settings only affect the `complete.scad` / `complete.stl` preview file. The `top.scad` and `bottom.scad` files are always generated without switches or keycaps for actual 3D printing.
 
 ## Included Profiles
 

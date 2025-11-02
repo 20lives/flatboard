@@ -111,6 +111,14 @@ export interface OutputConfig {
   openscad: {
     resolution: number;
   };
+  showSwitches?: boolean;
+  showKeycaps?: boolean;
+  keycapProfile?: 'dsa' | 'xda' | 'none';
+  colors?: {
+    topPlate?: string;
+    bottomPlate?: string;
+    keycaps?: string;
+  };
 }
 
 export interface KeyboardConfig {
@@ -198,6 +206,14 @@ export interface ParameterProfile {
   output?: {
     openscad?: {
       resolution?: number;
+    };
+    showSwitches?: boolean;
+    showKeycaps?: boolean;
+    keycapProfile?: 'dsa' | 'xda' | 'none';
+    colors?: {
+      topPlate?: string;
+      bottomPlate?: string;
+      keycaps?: string;
     };
   };
 }

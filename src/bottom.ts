@@ -95,14 +95,12 @@ export function generateBottomCase(plateWidth: number, plateHeight: number, conf
   const patternCutout = pipe(
     createBottomPattern(dimensions.outerWidth, dimensions.outerHeight, config),
     O.map((pattern2D) => {
-      let patternWithExclusions = pattern2D;
-      if (socketExclusions) {
-        patternWithExclusions = difference(patternWithExclusions, socketExclusions);
-      }
-      if (magsafeRingExclusion) {
-        patternWithExclusions = difference(patternWithExclusions, magsafeRingExclusion);
-      }
-      return patternWithExclusions.linear_extrude(bottomThickness + 0.2).translate([0, 0, -0.1]);
+      const patternWithExclusions = pipe(
+        pattern2D,
+        (p) => (socketExclusions ? difference(p, socketExclusions) : p),
+        (p) => (magsafeRingExclusion ? difference(p, magsafeRingExclusion) : p),
+      );
+      return patternWithExclusions.linear_extrude(bottomThickness + 0.2).translate_z(-0.1);
     }),
     O.toNullable,
   );

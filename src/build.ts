@@ -2,6 +2,7 @@ import { writeFileSync } from 'node:fs';
 import * as A from 'fp-ts/Array';
 import { pipe } from 'fp-ts/function';
 import { type ScadObject, union } from 'scad-js';
+import { createAllSwitchVisualizations } from './switch-visualization.js';
 import { generateBottomCase } from './bottom.js';
 import { createConfig } from './config.js';
 import { calculatePlateDimensions, getLayout } from './layout.js';
@@ -35,10 +36,21 @@ export function buildBottomCase(profileName: string) {
 }
 
 export function buildCompleteEnclosure(profileName: string) {
-  const { CONFIG } = buildWithConfig(profileName);
-  const topPlateGeometry = buildTopPlate(profileName).translate([0, 0, CONFIG.enclosure.plate.bottomThickness]);
-  const bottomCaseGeometry = buildBottomCase(profileName);
-  return union(topPlateGeometry, bottomCaseGeometry);
+  const { CONFIG, allKeyPlacements } = buildWithConfig(profileName);
+
+  // Use configured colors with defaults
+  const topPlateColor = CONFIG.output?.colors?.topPlate ?? '#b54c9e';
+  const bottomPlateColor = CONFIG.output?.colors?.bottomPlate ?? '#037da3';
+
+  const topPlateGeometry = buildTopPlate(profileName)
+    .color(topPlateColor, 0.8)
+    .translate_z(CONFIG.enclosure.plate.bottomThickness);
+  const bottomCaseGeometry = buildBottomCase(profileName).color(bottomPlateColor, 0.8);
+  const switchVisualizations = createAllSwitchVisualizations(allKeyPlacements, CONFIG);
+
+  return switchVisualizations
+    ? union(topPlateGeometry, bottomCaseGeometry, switchVisualizations)
+    : union(topPlateGeometry, bottomCaseGeometry);
 }
 
 const createOutputFile = (fileName: string, modelGeometry: ScadObject) => ({
