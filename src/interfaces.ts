@@ -66,6 +66,18 @@ export interface SiliconPadSocket {
   };
 }
 
+export interface MagSafeRingSocket {
+  clearance: number; // Clearance adjustment for fit (positive = looser, negative = tighter)
+  reinforcement: {
+    outer: number; // Additional thickness around outer diameter
+    inner: number; // Grip margin on inner diameter
+    height: number; // Additional height for ring structure
+  };
+  position: {
+    offset: Point2D; // Offset from center of keyboard
+  };
+}
+
 export interface BottomPatternConfig {
   type: 'honeycomb' | 'circles' | 'square';
   cellSize: number;
@@ -84,6 +96,7 @@ export interface EnclosureConfig {
   };
   bottomPadsSockets?: SiliconPadSocket[];
   bottomPattern?: BottomPatternConfig;
+  magsafeRing?: MagSafeRingSocket;
 }
 
 export interface ConnectorConfig {
@@ -179,6 +192,7 @@ export interface ParameterProfile {
     };
     bottomPadsSockets?: SiliconPadSocket[];
     bottomPattern?: BottomPatternConfig;
+    magsafeRing?: MagSafeRingSocket;
   };
   connectors?: ConnectorConfig[];
   output?: {
