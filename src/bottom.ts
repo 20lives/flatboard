@@ -2,6 +2,11 @@ import * as A from 'fp-ts/Array';
 import { pipe } from 'fp-ts/function';
 import * as O from 'fp-ts/Option';
 import { difference, hull, type ScadObject, union } from 'scad-js';
+import {
+  createMagSafeRingCutout,
+  createMagSafeRingExclusionZone,
+  createMagSafeRingStructure,
+} from './bottom-magsafe-ring.js';
 import { createSiliconPadSocketStructures, createSocketExclusionZones } from './bottom-pads-sockets.js';
 import { createBottomPattern } from './bottom-patterns.js';
 import { createAllConnectors } from './connector.js';
@@ -81,13 +86,22 @@ export function generateBottomCase(plateWidth: number, plateHeight: number, conf
   );
 
   const socketStructures = createSiliconPadSocketStructures(plateWidth, plateHeight, bottomThickness, config);
-
   const socketExclusions = createSocketExclusionZones(plateWidth, plateHeight, config);
+
+  const magsafeRingStructure = createMagSafeRingStructure(plateWidth, plateHeight, wallThickness, config);
+  const magsafeRingCutout = createMagSafeRingCutout(plateWidth, plateHeight, wallThickness, config);
+  const magsafeRingExclusion = createMagSafeRingExclusionZone(plateWidth, plateHeight, wallThickness, config);
 
   const patternCutout = pipe(
     createBottomPattern(dimensions.outerWidth, dimensions.outerHeight, config),
     O.map((pattern2D) => {
-      const patternWithExclusions = socketExclusions ? difference(pattern2D, socketExclusions) : pattern2D;
+      let patternWithExclusions = pattern2D;
+      if (socketExclusions) {
+        patternWithExclusions = difference(patternWithExclusions, socketExclusions);
+      }
+      if (magsafeRingExclusion) {
+        patternWithExclusions = difference(patternWithExclusions, magsafeRingExclusion);
+      }
       return patternWithExclusions.linear_extrude(bottomThickness + 0.2).translate([0, 0, -0.1]);
     }),
     O.toNullable,
@@ -96,8 +110,10 @@ export function generateBottomCase(plateWidth: number, plateHeight: number, conf
   return pipe(
     baseGeometry,
     (geometry) => (socketStructures.reinforcements ? union(geometry, socketStructures.reinforcements) : geometry),
+    (geometry) => (magsafeRingStructure ? union(geometry, magsafeRingStructure) : geometry),
     (geometry) => (patternCutout ? difference(geometry, patternCutout) : geometry),
     (geometry) => (connectorCutouts ? difference(geometry, connectorCutouts) : geometry),
     (geometry) => (socketStructures.cutouts ? difference(geometry, socketStructures.cutouts) : geometry),
+    (geometry) => (magsafeRingCutout ? difference(geometry, magsafeRingCutout) : geometry),
   );
 }

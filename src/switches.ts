@@ -37,7 +37,7 @@ export const SWITCH_SPECS = {
     },
     layout: {
       matrix: {
-        spacing: 18.6
+        spacing: 18.6,
       },
     },
   },

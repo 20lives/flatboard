@@ -82,6 +82,17 @@ export const profile: ParameterProfile = {
       wallThickness: 4,
       margin: 5,
     },
+    magsafeRing: {
+      clearance: 0.2,
+      reinforcement: {
+        outer: 2.0,
+        inner: 2.0,
+        height: 0.5,
+      },
+      position: {
+        offset: { x: 0, y: 0 },
+      },
+    },
   },
   connectors: [
     {

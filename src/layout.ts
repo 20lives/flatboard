@@ -168,22 +168,20 @@ function mirrorLayout(keyPlacements: KeyPlacement[], centerGap: number, maxKeySi
   }));
 
   const rightHalf = keyPlacements.map(({ pos, rot }) => ({
-    pos: { x: pos.x, y: (pos.y - centerY) + halfGap + halfExtent },
+    pos: { x: pos.x, y: pos.y - centerY + halfGap + halfExtent },
     rot,
   }));
 
-  return pipe(
-    leftHalf,
-    A.concat(rightHalf),
-  );
+  return pipe(leftHalf, A.concat(rightHalf));
 }
 
 export function getLayout(config: KeyboardConfig): KeyPlacement[] {
   const rotatedKeys = applyGlobalRotation(buildLayout(config), config);
 
-  const finalKeys = config.layout.mode === 'unibody' && config.layout.centerGap !== undefined
-    ? mirrorLayout(rotatedKeys, config.layout.centerGap, config.switch.cutout.outer)
-    : rotatedKeys;
+  const finalKeys =
+    config.layout.mode === 'unibody' && config.layout.centerGap !== undefined
+      ? mirrorLayout(rotatedKeys, config.layout.centerGap, config.switch.cutout.outer)
+      : rotatedKeys;
 
   const bounds = calculateKeyBounds(finalKeys, config.switch.cutout.outer);
   const { edgeMargin } = config.layout;
