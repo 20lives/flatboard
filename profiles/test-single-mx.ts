@@ -10,16 +10,16 @@ export const profile: ParameterProfile = {
     baseDegrees: 0,
   },
   switch: {
-    type: 'choc',
+    type: 'mx',
   },
   enclosure: {
     plate: {
-      topThickness: 1.0,
-      bottomThickness: 1.0,
+      topThickness: 1.5,
+      bottomThickness: 1.5,
     },
     walls: {
-      thickness: 1.0,
-      height: 5.0,
+      thickness: 1.5,
+      height: 6.0,
     },
     bottomPattern: {
       type: 'circles',

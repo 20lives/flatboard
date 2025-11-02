@@ -1,6 +1,11 @@
 import type { ParameterProfile } from '../src/interfaces.js';
 
 export const profile: ParameterProfile = {
+  output: {
+    showSwitches: true,
+    showKeycaps: true,
+    keycapProfile: 'dsa',
+  },
   layout: {
     mode: 'split',
     matrix: {
