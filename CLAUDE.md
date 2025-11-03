@@ -288,6 +288,29 @@ Object literal pattern for:
 - `calculateAnchorPosition()`: Anchor positioning
 - `createSocketShapes()`: Shape creation
 
+### `bottom-magsafe-ring.ts`
+Magnetic mounting for tenting using MagSafe ring socket with phone holders. Center-positioned with configurable X/Y offset.
+
+**Standard MagSafe dimensions:**
+- Outer diameter: 55mm
+- Inner diameter: 50mm
+- Depth: 0.5mm
+
+**Configuration:**
+```typescript
+magsafeRing: {
+  clearance: 0.2,              // Fit adjustment (positive = looser)
+  reinforcement: {
+    outer: 2.0,                // Thickness around outer diameter
+    inner: 2.0,                // Grip margin on inner diameter
+    height: 0.5,               // Additional height for ring
+  },
+  position: {
+    offset: { x: 0, y: 0 },    // Offset from keyboard center
+  },
+}
+```
+
 ### `utils.ts`
 Core utilities (135 lines):
 - `deepMerge<T>()`: Configuration merging returning `Either<string, T>`

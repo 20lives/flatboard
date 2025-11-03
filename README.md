@@ -303,6 +303,31 @@ enclosure: {
 }
 ```
 
+### Magnetic Mounting
+
+Add MagSafe ring socket for tenting with phone holders and magnetic mounts:
+
+**Standard MagSafe dimensions:**
+- Outer diameter: 55mm
+- Inner diameter: 50mm
+- Depth: 0.5mm
+
+```typescript
+enclosure: {
+  magsafeRing: {
+    clearance: 0.2,              // Fit adjustment (positive = looser)
+    reinforcement: {
+      outer: 2.0,                // Thickness around outer diameter
+      inner: 2.0,                // Grip margin on inner diameter
+      height: 0.5,               // Additional height for ring
+    },
+    position: {
+      offset: { x: 0, y: 0 },    // Offset from keyboard center
+    },
+  },
+}
+```
+
 ### Multiple Connectors
 
 ```typescript
