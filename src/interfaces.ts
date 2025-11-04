@@ -113,7 +113,7 @@ export interface OutputConfig {
   };
   showSwitches?: boolean;
   showKeycaps?: boolean;
-  keycapProfile?: 'dsa' | 'xda' | 'none';
+  keycapProfile?: 'choc' | 'dsa' | 'xda' | 'none';
   colors?: {
     topPlate?: string;
     bottomPlate?: string;
@@ -209,7 +209,7 @@ export interface ParameterProfile {
     };
     showSwitches?: boolean;
     showKeycaps?: boolean;
-    keycapProfile?: 'dsa' | 'xda' | 'none';
+    keycapProfile?: 'choc' | 'dsa' | 'xda' | 'none';
     colors?: {
       topPlate?: string;
       bottomPlate?: string;

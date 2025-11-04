@@ -1,12 +1,4 @@
-import {
-  cube,
-  cylinder,
-  translate,
-  difference,
-  hull,
-  union,
-  ScadObject,
-} from 'scad-js';
+import { cube, cylinder, difference, hull, union, type ScadObject } from 'scad-js';
 
 export function createCherryMX(): ScadObject {
   const stem = createStem().color('#8B4513');
@@ -15,7 +7,7 @@ export function createCherryMX(): ScadObject {
   const bottomGuides = createBottomGuides().color('#006400');
   const pins = createPins().color('#FF8C00');
 
-  return union( stem, topHousing, bottomHousing, bottomGuides, pins );
+  return union(stem, topHousing, bottomHousing, bottomGuides, pins);
 }
 
 function createStem(): ScadObject {
@@ -27,10 +19,7 @@ function createStem(): ScadObject {
 }
 
 function createTopHousing(): ScadObject {
-  const topShape = hull(
-    cube([9.87, 10.62, 0.1]).translate_z( -4),
-    cube([14.58, 14.58, 0.1]).translate_z(-4 - 5.2),
-  );
+  const topShape = hull(cube([9.87, 10.62, 0.1]).translate_z(-4), cube([14.58, 14.58, 0.1]).translate_z(-4 - 5.2));
 
   const ledCylinder = cylinder(6, 3 / 2).translate([0, -4.7, -6]);
   const ledCube = cube([8, 4, 5]).translate([0, -5.5, -6]);
@@ -41,8 +30,8 @@ function createTopHousing(): ScadObject {
 function createBottomHousing(): ScadObject {
   const mainBody = hull(
     cube([13.98, 13.98, 0.1]).translate_z(-4 - 5.3),
-    cube([13.98, 13.98, 0.1]).translate_z( -4 - 5.3 - 2.2),
-    cube([12.74, 13.6, 0.1]).translate_z( -4 - 5.3 - 5.5),
+    cube([13.98, 13.98, 0.1]).translate_z(-4 - 5.3 - 2.2),
+    cube([12.74, 13.6, 0.1]).translate_z(-4 - 5.3 - 5.5),
   );
 
   const tabs = difference(
@@ -80,14 +69,7 @@ function createBottomGuides(): ScadObject {
   const rightPin = cylinder(2, 1.6 / 2).translate([4.95, 0, -4 - 5.3 - 5.5 - 2 / 2]);
   const rightPinTapered = cylinder(1, 1 / 2, 1.6 / 2).translate([4.95, 0, -4 - 5.3 - 5.5 - 2 - 1 / 2]);
 
-  return union(
-    centerCylinder,
-    centerCylinderTapered,
-    leftPin,
-    leftPinTapered,
-    rightPin,
-    rightPinTapered,
-  );
+  return union(centerCylinder, centerCylinderTapered, leftPin, leftPinTapered, rightPin, rightPinTapered);
 }
 
 function createPins(): ScadObject {

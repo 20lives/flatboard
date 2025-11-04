@@ -1,20 +1,22 @@
 import type { ParameterProfile } from '../src/interfaces.js';
 
+// Sweep-style 17-key split keyboard from KiCad PCB
+// Layout has 5 columns with column stagger and 2 rotated thumb keys
 export const profile: ParameterProfile = {
   output: {
-    showSwitches: true,
+    showSwitches: false,
     showKeycaps: true,
-    keycapProfile: 'dsa',
+    keycapProfile: 'choc',
   },
   layout: {
     mode: 'split',
     matrix: {
       rowLayout: [
-        { start: 0, length: 3, offset: 5, thumbAnchor: 2 },
-        { start: 0, length: 3, offset: 1 },
-        { start: 0, length: 3, offset: 0 },
-        { start: 0, length: 3, offset: 3 },
-        { start: 0, length: 3, offset: 4 },
+        { start: 0, length: 3, offset: 0, thumbAnchor: 1 },
+        { start: 0, length: 3, offset: -3 },
+        { start: 0, length: 3, offset: -8 },
+        { start: 0, length: 3, offset: -1},
+        { start: 0, length: 3, offset: 11 },
       ],
     },
     edgeMargin: 4.0,
@@ -25,20 +27,18 @@ export const profile: ParameterProfile = {
   },
   thumb: {
     cluster: {
-      keys: 3,
-      spacing: 20.0,
-      rotation: 17.0,
+      keys: 2,
+      rotation:15, 
     },
     offset: {
-      x: 25,
-      y: 2,
+      x: 40,
+      y: 0,
     },
     perKey: {
-      rotations: [-10, 0, +10],
+      rotations: [0, 12],
       offsets: [
-        { x: 2, y: 0 },
         { x: 0, y: 0 },
-        { x: 2, y: 0 },
+        { x: 2, y: -2.5 },
       ],
     },
   },
@@ -50,6 +50,12 @@ export const profile: ParameterProfile = {
     walls: {
       thickness: 1.5,
       height: 9.0,
+    },
+    bottomPattern: {
+      type: 'honeycomb',
+      cellSize: 8,
+      wallThickness: 3.5,
+      margin: 6,
     },
     bottomPadsSockets: [
       {
@@ -81,12 +87,6 @@ export const profile: ParameterProfile = {
         reinforcement: { thickness: 1, height: 0.2 },
       },
     ],
-    bottomPattern: {
-      type: 'honeycomb',
-      cellSize: 12,
-      wallThickness: 4,
-      margin: 5,
-    },
     magsafeRing: {
       clearance: 0.2,
       reinforcement: {
@@ -104,14 +104,7 @@ export const profile: ParameterProfile = {
       type: 'usbC',
       enabled: true,
       face: 'left',
-      position: 0.95,
-      clearance: 0.2,
-    },
-    {
-      type: 'powerButton',
-      enabled: true,
-      face: 'top',
-      position: 0.1,
+      position: 0.5,
       clearance: 0.2,
     },
   ],
