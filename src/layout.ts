@@ -187,8 +187,8 @@ export function getLayout(config: KeyboardConfig): KeyPlacement[] {
   const { edgeMargin } = config.layout;
   const wallThickness = config.enclosure.walls.thickness;
 
-  const offsetX = -bounds.minX + edgeMargin + wallThickness;
-  const offsetY = -bounds.minY + edgeMargin + wallThickness;
+  const offsetX = -bounds.minX + edgeMargin.left + wallThickness;
+  const offsetY = -bounds.minY + edgeMargin.top + wallThickness;
 
   return finalKeys.map(({ rot, pos }) => ({
     rot,
@@ -204,8 +204,8 @@ export function calculatePlateDimensions(keyPlacements: KeyPlacement[], config: 
   const { edgeMargin } = config.layout;
 
   return {
-    plateWidth: bounds.maxX - bounds.minX + 2 * edgeMargin,
-    plateHeight: bounds.maxY - bounds.minY + 2 * edgeMargin,
+    plateWidth: bounds.maxX - bounds.minX + edgeMargin.left + edgeMargin.right,
+    plateHeight: bounds.maxY - bounds.minY + edgeMargin.top + edgeMargin.bottom,
     plateOffset: { x: 0, y: 0 },
   };
 }

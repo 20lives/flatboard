@@ -17,7 +17,12 @@ export const profile: ParameterProfile = {
         { start: 0, length: 3, offset: 4 },
       ],
     },
-    edgeMargin: 4.0,
+    edgeMargin: {
+      top: 4,
+      bottom: 6,
+      left: 4,
+      right: 6,
+    },
     baseDegrees: 0.0,
   },
   switch: {
@@ -43,15 +48,17 @@ export const profile: ParameterProfile = {
     },
   },
   enclosure: {
+    cornerRadius: 2,
     plate: {
       topThickness: 1.5,
       bottomThickness: 1.5,
     },
     walls: {
       thickness: 1.5,
-      height: 9.0,
+      height: 8.0,
     },
     bottomPadsSockets: [
+      /*
       {
         shape: 'round',
         size: { radius: 5.05 },
@@ -80,19 +87,20 @@ export const profile: ParameterProfile = {
         position: { anchor: 'top-right', offset: { x: 0, y: 0 } },
         reinforcement: { thickness: 1, height: 0.2 },
       },
+      */
     ],
     bottomPattern: {
       type: 'honeycomb',
-      cellSize: 12,
+      cellSize: 14,
       wallThickness: 4,
       margin: 5,
     },
     magsafeRing: {
       clearance: 0.2,
       reinforcement: {
-        outer: 2.0,
-        inner: 2.0,
-        height: 0.5,
+        outer: 3.0,
+        inner: 3.0,
+        height: 0.8,
       },
       position: {
         offset: { x: 0, y: 0 },
@@ -101,17 +109,17 @@ export const profile: ParameterProfile = {
   },
   connectors: [
     {
-      type: 'usbC',
+      type: 'powerButton',
       enabled: true,
-      face: 'left',
-      position: 0.95,
+      face: 'right',
+      position: 0.20,
       clearance: 0.2,
     },
     {
-      type: 'powerButton',
+      type: 'usbC',
       enabled: true,
-      face: 'top',
-      position: 0.1,
+      face: 'bottom',
+      position: 0.60,
       clearance: 0.2,
     },
   ],

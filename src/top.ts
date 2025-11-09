@@ -13,9 +13,10 @@ const createOuterWallBox = (
   plateHeight: number,
   totalHeight: number,
   plateThickness: number,
+  cornerRadius: number,
 ) => {
-  const outerSquare = createRoundedSquare(outerWidth, outerHeight);
-  const baseSquare = createRoundedSquare(plateWidth, plateHeight);
+  const outerSquare = createRoundedSquare(outerWidth, outerHeight, cornerRadius);
+  const baseSquare = createRoundedSquare(plateWidth, plateHeight, cornerRadius);
 
   return difference(
     outerSquare.linear_extrude(totalHeight),
@@ -62,13 +63,14 @@ export function generateKeyboardPlate(
 ) {
   const { thickness: wallThickness, height: topWallHeight } = config.enclosure.walls;
   const plateThickness = config.enclosure.plate.topThickness;
+  const cornerRadius = config.enclosure.cornerRadius ?? 0.5;
   const { outer, inner, height, startHeight } = config.switch.cutout;
 
   const totalHeight = plateThickness + topWallHeight;
   const outerWidth = plateWidth + 2 * wallThickness;
   const outerHeight = plateHeight + 2 * wallThickness;
 
-  const wallBox = createOuterWallBox(outerWidth, outerHeight, plateWidth, plateHeight, totalHeight, plateThickness);
+  const wallBox = createOuterWallBox(outerWidth, outerHeight, plateWidth, plateHeight, totalHeight, plateThickness, cornerRadius);
 
   const switchCutouts = createSwitchCutouts(keyPlacements, outer, plateThickness, topWallHeight - 0.05);
 
