@@ -1,7 +1,7 @@
 import * as E from 'fp-ts/Either';
 import { pipe } from 'fp-ts/function';
 import * as O from 'fp-ts/Option';
-import type { KeyboardConfig, ParameterProfile } from './interfaces.js';
+import type { EdgeMargin, KeyboardConfig, ParameterProfile } from './interfaces.js';
 import { KEYBOARD_PROFILES } from './profile-loader.js';
 import { SWITCH_SPECS } from './switches.js';
 import { deepMerge } from './utils.js';
@@ -50,8 +50,26 @@ function createFinalConfig(profileName: string): KeyboardConfig {
   );
 }
 
+const normalizeEdgeMargin = (edgeMargin: number | EdgeMargin | undefined): EdgeMargin => {
+  if (typeof edgeMargin === 'number') {
+    return { top: edgeMargin, bottom: edgeMargin, left: edgeMargin, right: edgeMargin };
+  }
+  if (edgeMargin) {
+    return edgeMargin;
+  }
+  // Default fallback
+  return { top: 0, bottom: 0, left: 0, right: 0 };
+};
+
 const createConfigFromProfile = (params: ParameterProfile): KeyboardConfig => {
-  return params as unknown as KeyboardConfig;
+  const config = params as unknown as KeyboardConfig;
+
+  // Normalize edgeMargin from number to EdgeMargin object if needed
+  if (config.layout?.edgeMargin !== undefined) {
+    config.layout.edgeMargin = normalizeEdgeMargin(config.layout.edgeMargin as number | EdgeMargin);
+  }
+
+  return config;
 };
 
 export function createConfig(profileName: string): KeyboardConfig {
