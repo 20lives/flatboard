@@ -4,7 +4,7 @@
  * Converted from OpenSCAD to scad-js
  */
 
-import { cube, difference, hull, intersection, sphere, square, union } from 'scad-js';
+import { cube, difference, hull, intersection, sphere, square, union, type ScadObject } from 'scad-js';
 
 // Keycap profile specifications
 interface KeycapProfile {
@@ -47,14 +47,12 @@ const POLYGON_LAYERS = 10;
 const DISH_CORNER_FN = 64;
 
 // Utility functions
-const isOdd = (x: number): boolean => x % 2 === 1;
-const polygonSlice = (step: number, amplitude: number, totalSteps = 10): number =>
-  (1 - step / totalSteps) * amplitude;
+const polygonSlice = (step: number, amplitude: number, totalSteps = 10): number => (1 - step / totalSteps) * amplitude;
 
 /**
  * Creates a squarish rounded polygon (2D)
  */
-function squarishRpoly(xy: [number, number], h: number, r: number, center = false, fn = 64): any {
+function squarishRpoly(xy: [number, number], h: number, r: number, center = false): ScadObject {
   const correctedX = xy[0] > r ? xy[0] - r * 2 : r / 10;
   const correctedY = xy[1] > r ? xy[1] - r * 2 : r / 10;
 
@@ -78,8 +76,7 @@ function squarishRpolyTapered(
   r: number,
   xy2Offset: [number, number] = [0, 0],
   center = false,
-  fn = 64,
-): any {
+): ScadObject {
   const correctedX1 = xy1[0] > r ? xy1[0] - r * 2 : r / 10;
   const correctedY1 = xy1[1] > r ? xy1[1] - r * 2 : r / 10;
   const correctedX2 = xy2[0] > r ? xy2[0] - r * 2 : r / 10;
@@ -105,14 +102,10 @@ function squarishRpolyTapered(
 /**
  * Cherry MX cross stem cutout
  */
-function cherryCross(): any {
-  const crossY = square([1.3, 4.05])
-    .linear_extrude(4.002, { center: false })
-    .translate_z(-0.001);
+function cherryCross(): ScadObject {
+  const crossY = square([1.3, 4.05]).linear_extrude(4.002, { center: false }).translate_z(-0.001);
 
-  const crossX = square([4.2, 1.5])
-    .linear_extrude(4.002, { center: false })
-    .translate_z(-0.001);
+  const crossX = square([4.2, 1.5]).linear_extrude(4.002, { center: false }).translate_z(-0.001);
 
   // Flare at base
   const flareY = square([1.9, 4.6])
@@ -129,16 +122,16 @@ function cherryCross(): any {
 /**
  * Generates keycap body (main shell)
  */
-function generateKeycapBody(profile: KeycapProfile): any {
-  const layers: any[] = [];
+function generateKeycapBody(profile: KeycapProfile): ScadObject {
+  const layers: ScadObject[] = [];
 
   for (let l = 0; l < POLYGON_LAYERS; l++) {
     const reductionFactorBelow = polygonSlice(l, profile.polygonCurve, POLYGON_LAYERS);
     const reductionFactorAbove = polygonSlice(l + 1, profile.polygonCurve, POLYGON_LAYERS);
     const curveValBelow = (profile.topDifference - reductionFactorBelow) * (l / POLYGON_LAYERS);
     const curveValAbove = (profile.topDifference - reductionFactorAbove) * ((l + 1) / POLYGON_LAYERS);
-    const extraCornerRadiusBelow = (profile.cornerRadius * profile.cornerRadiusCurve / POLYGON_LAYERS) * l;
-    const extraCornerRadiusAbove = (profile.cornerRadius * profile.cornerRadiusCurve / POLYGON_LAYERS) * (l + 1);
+    const extraCornerRadiusBelow = ((profile.cornerRadius * profile.cornerRadiusCurve) / POLYGON_LAYERS) * l;
+    const extraCornerRadiusAbove = ((profile.cornerRadius * profile.cornerRadiusCurve) / POLYGON_LAYERS) * (l + 1);
     const cornerRadiusBelow = profile.cornerRadius + extraCornerRadiusBelow;
     const cornerRadiusAbove = profile.cornerRadius + extraCornerRadiusAbove;
 
@@ -167,21 +160,24 @@ function generateKeycapBody(profile: KeycapProfile): any {
 /**
  * Generates interior hollow for keycap
  */
-function generateKeycapHollow(profile: KeycapProfile): any {
-  const layers: any[] = [];
+function generateKeycapHollow(profile: KeycapProfile): ScadObject {
+  const layers: ScadObject[] = [];
 
   for (let l = 0; l < POLYGON_LAYERS; l++) {
     const reductionFactorBelow = polygonSlice(l, profile.polygonCurve, POLYGON_LAYERS);
     const reductionFactorAbove = polygonSlice(l + 1, profile.polygonCurve, POLYGON_LAYERS);
     const curveValBelow = (profile.topDifference - reductionFactorBelow) * (l / POLYGON_LAYERS);
     const curveValAbove = (profile.topDifference - reductionFactorAbove) * ((l + 1) / POLYGON_LAYERS);
-    const extraCornerRadiusBelow = (profile.cornerRadius * profile.cornerRadiusCurve / POLYGON_LAYERS) * l;
-    const extraCornerRadiusAbove = (profile.cornerRadius * profile.cornerRadiusCurve / POLYGON_LAYERS) * (l + 1);
+    const extraCornerRadiusBelow = ((profile.cornerRadius * profile.cornerRadiusCurve) / POLYGON_LAYERS) * l;
+    const extraCornerRadiusAbove = ((profile.cornerRadius * profile.cornerRadiusCurve) / POLYGON_LAYERS) * (l + 1);
     const cornerRadiusBelow = profile.cornerRadius + extraCornerRadiusBelow;
     const cornerRadiusAbove = profile.cornerRadius + extraCornerRadiusAbove;
 
     const bottom = squarishRpoly(
-      [KEYCAP_WIDTH - profile.wallThickness * 2 - curveValBelow, KEYCAP_WIDTH - profile.wallThickness * 2 - curveValBelow],
+      [
+        KEYCAP_WIDTH - profile.wallThickness * 2 - curveValBelow,
+        KEYCAP_WIDTH - profile.wallThickness * 2 - curveValBelow,
+      ],
       0.01,
       cornerRadiusBelow / 1.25,
       false,
@@ -189,7 +185,10 @@ function generateKeycapHollow(profile: KeycapProfile): any {
     ).translate_z((profile.height / POLYGON_LAYERS) * l);
 
     const top = squarishRpoly(
-      [KEYCAP_WIDTH - profile.wallThickness * 2 - curveValAbove, KEYCAP_WIDTH - profile.wallThickness * 2 - curveValAbove],
+      [
+        KEYCAP_WIDTH - profile.wallThickness * 2 - curveValAbove,
+        KEYCAP_WIDTH - profile.wallThickness * 2 - curveValAbove,
+      ],
       0.01,
       cornerRadiusAbove / 1.25,
       false,
@@ -205,21 +204,24 @@ function generateKeycapHollow(profile: KeycapProfile): any {
 /**
  * Generates stem carve shape
  */
-function generateStemCarveShape(profile: KeycapProfile): any {
-  const carveShapeLayers: any[] = [];
+function generateStemCarveShape(profile: KeycapProfile): ScadObject {
+  const carveShapeLayers: ScadObject[] = [];
 
   for (let l = 0; l < POLYGON_LAYERS; l++) {
     const reductionFactorBelow = polygonSlice(l, profile.polygonCurve, POLYGON_LAYERS);
     const reductionFactorAbove = polygonSlice(l + 1, profile.polygonCurve, POLYGON_LAYERS);
     const curveValBelow = (profile.topDifference - reductionFactorBelow) * (l / POLYGON_LAYERS);
     const curveValAbove = (profile.topDifference - reductionFactorAbove) * ((l + 1) / POLYGON_LAYERS);
-    const extraCornerRadiusBelow = (profile.cornerRadius * profile.cornerRadiusCurve / POLYGON_LAYERS) * l;
-    const extraCornerRadiusAbove = (profile.cornerRadius * profile.cornerRadiusCurve / POLYGON_LAYERS) * (l + 1);
+    const extraCornerRadiusBelow = ((profile.cornerRadius * profile.cornerRadiusCurve) / POLYGON_LAYERS) * l;
+    const extraCornerRadiusAbove = ((profile.cornerRadius * profile.cornerRadiusCurve) / POLYGON_LAYERS) * (l + 1);
     const cornerRadiusBelow = profile.cornerRadius + extraCornerRadiusBelow;
     const cornerRadiusAbove = profile.cornerRadius + extraCornerRadiusAbove;
 
     const bottom = squarishRpoly(
-      [KEYCAP_WIDTH - profile.wallThickness * 1.5 - curveValBelow, KEYCAP_WIDTH - profile.wallThickness * 1.5 - curveValBelow],
+      [
+        KEYCAP_WIDTH - profile.wallThickness * 1.5 - curveValBelow,
+        KEYCAP_WIDTH - profile.wallThickness * 1.5 - curveValBelow,
+      ],
       0.01,
       cornerRadiusBelow / 2,
       false,
@@ -227,7 +229,10 @@ function generateStemCarveShape(profile: KeycapProfile): any {
     ).translate_z(((profile.height - profile.wallThickness / 2) / POLYGON_LAYERS) * l);
 
     const top = squarishRpoly(
-      [KEYCAP_WIDTH - profile.wallThickness * 1.5 - curveValAbove, KEYCAP_WIDTH - profile.wallThickness * 1.5 - curveValAbove],
+      [
+        KEYCAP_WIDTH - profile.wallThickness * 1.5 - curveValAbove,
+        KEYCAP_WIDTH - profile.wallThickness * 1.5 - curveValAbove,
+      ],
       0.01,
       cornerRadiusAbove / 2,
       false,
@@ -243,17 +248,17 @@ function generateStemCarveShape(profile: KeycapProfile): any {
 /**
  * Generates stem interior walls
  */
-function generateStemWalls(profile: KeycapProfile): any {
-  const outerWallLayers: any[] = [];
-  const innerHollowLayers: any[] = [];
+function generateStemWalls(profile: KeycapProfile): ScadObject {
+  const outerWallLayers: ScadObject[] = [];
+  const innerHollowLayers: ScadObject[] = [];
 
   for (let l = 0; l < POLYGON_LAYERS; l++) {
     const reductionFactorBelow = polygonSlice(l, profile.polygonCurve, POLYGON_LAYERS);
     const reductionFactorAbove = polygonSlice(l + 1, profile.polygonCurve, POLYGON_LAYERS);
     const curveValBelow = (profile.topDifference - reductionFactorBelow) * (l / POLYGON_LAYERS);
     const curveValAbove = (profile.topDifference - reductionFactorAbove) * ((l + 1) / POLYGON_LAYERS);
-    const extraCornerRadiusBelow = (profile.cornerRadius * profile.cornerRadiusCurve / POLYGON_LAYERS) * l;
-    const extraCornerRadiusAbove = (profile.cornerRadius * profile.cornerRadiusCurve / POLYGON_LAYERS) * (l + 1);
+    const extraCornerRadiusBelow = ((profile.cornerRadius * profile.cornerRadiusCurve) / POLYGON_LAYERS) * l;
+    const extraCornerRadiusAbove = ((profile.cornerRadius * profile.cornerRadiusCurve) / POLYGON_LAYERS) * (l + 1);
     const cornerRadiusBelow = profile.cornerRadius + extraCornerRadiusBelow;
     const cornerRadiusAbove = profile.cornerRadius + extraCornerRadiusAbove;
 
@@ -261,7 +266,10 @@ function generateStemWalls(profile: KeycapProfile): any {
 
     // Outer walls
     const outerBottom = squarishRpoly(
-      [KEYCAP_WIDTH - profile.wallThickness * 2 - curveValBelow, KEYCAP_WIDTH - profile.wallThickness * 2 - curveValBelow],
+      [
+        KEYCAP_WIDTH - profile.wallThickness * 2 - curveValBelow,
+        KEYCAP_WIDTH - profile.wallThickness * 2 - curveValBelow,
+      ],
       0.01,
       cornerRadiusBelow / 1.25,
       false,
@@ -269,7 +277,10 @@ function generateStemWalls(profile: KeycapProfile): any {
     ).translate_z(lHeight * l);
 
     const outerTop = squarishRpoly(
-      [KEYCAP_WIDTH - profile.wallThickness * 2 - curveValAbove, KEYCAP_WIDTH - profile.wallThickness * 2 - curveValAbove],
+      [
+        KEYCAP_WIDTH - profile.wallThickness * 2 - curveValAbove,
+        KEYCAP_WIDTH - profile.wallThickness * 2 - curveValAbove,
+      ],
       0.01,
       cornerRadiusAbove / 1.25,
       false,
@@ -281,7 +292,10 @@ function generateStemWalls(profile: KeycapProfile): any {
     // Inner hollow (wall_extra = 0.65)
     const wallExtra = 0.65;
     const innerBottom = squarishRpoly(
-      [KEYCAP_WIDTH - profile.wallThickness * 2 - wallExtra * 2 - curveValBelow, KEYCAP_WIDTH - profile.wallThickness * 2 - wallExtra * 2 - curveValBelow],
+      [
+        KEYCAP_WIDTH - profile.wallThickness * 2 - wallExtra * 2 - curveValBelow,
+        KEYCAP_WIDTH - profile.wallThickness * 2 - wallExtra * 2 - curveValBelow,
+      ],
       0.01,
       cornerRadiusBelow / 1.25,
       false,
@@ -289,7 +303,10 @@ function generateStemWalls(profile: KeycapProfile): any {
     ).translate_z(lHeight * l);
 
     const innerTop = squarishRpoly(
-      [KEYCAP_WIDTH - profile.wallThickness * 2 - wallExtra * 2 - curveValAbove, KEYCAP_WIDTH - profile.wallThickness * 2 - wallExtra * 2 - curveValAbove],
+      [
+        KEYCAP_WIDTH - profile.wallThickness * 2 - wallExtra * 2 - curveValAbove,
+        KEYCAP_WIDTH - profile.wallThickness * 2 - wallExtra * 2 - curveValAbove,
+      ],
       0.01,
       cornerRadiusAbove / 1.25,
       false,
@@ -309,7 +326,7 @@ function generateStemWalls(profile: KeycapProfile): any {
 /**
  * Generates the complete keycap with Cherry MX stem
  */
-export function generateKeycap(profileType: 'dsa' | 'xda'): any {
+export function generateKeycap(profileType: 'dsa' | 'xda'): ScadObject {
   const profile = PROFILES[profileType];
 
   // Main keycap shell
@@ -317,9 +334,10 @@ export function generateKeycap(profileType: 'dsa' | 'xda'): any {
 
   // Dish cutout (sphere)
   const adjustedDimension = KEYCAP_WIDTH - profile.topDifference;
-  const rad = profile.dishDepth > 0
-    ? (Math.pow(adjustedDimension, 2) + 4 * Math.pow(profile.dishDepth, 2)) / (8 * profile.dishDepth)
-    : 0;
+  const rad =
+    profile.dishDepth > 0
+      ? (adjustedDimension ** 2 + 4 * profile.dishDepth ** 2) / (8 * profile.dishDepth)
+      : 0;
   const dishZ = profileType === 'dsa' ? 0.111 : 0;
 
   const dish = sphere(rad * 2, { $fn: profile.dishFn }).translate([
@@ -376,13 +394,13 @@ export function generateKeycap(profileType: 'dsa' | 'xda'): any {
 /**
  * Generate DSA keycap
  */
-export function generateDSAKeycap(): any {
+export function generateDSAKeycap(): ScadObject {
   return generateKeycap('dsa');
 }
 
 /**
  * Generate XDA keycap
  */
-export function generateXDAKeycap(): any {
+export function generateXDAKeycap(): ScadObject {
   return generateKeycap('xda');
 }

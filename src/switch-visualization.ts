@@ -4,16 +4,25 @@ import { union, type ScadObject } from 'scad-js';
 import type { KeyboardConfig, KeyPlacement } from './interfaces.js';
 import { createCherryMX } from './assets/cherry-mx.js';
 import { generateDSAKeycap, generateXDAKeycap } from './assets/keycap-generator.js';
+import { generateChocKeycap } from './assets/choc.js';
 
 function createPositionedKeycap(
   keyPlacement: KeyPlacement,
-  profile: 'dsa' | 'xda',
+  profile: 'choc' | 'dsa' | 'xda',
   plateThickness: number,
   wallHeight: number,
   keycapColor: string,
 ): ScadObject {
   const { pos, rot } = keyPlacement;
-  const keycap = profile === 'dsa' ? generateDSAKeycap() : generateXDAKeycap();
+  let keycap: ScadObject;
+
+  if (profile === 'choc') {
+    keycap = generateChocKeycap();
+  } else if (profile === 'dsa') {
+    keycap = generateDSAKeycap();
+  } else {
+    keycap = generateXDAKeycap();
+  }
 
   return keycap
     .color(keycapColor, 0.9)
@@ -25,9 +34,7 @@ function createPositionedSwitch(keyPlacement: KeyPlacement, plateThickness: numb
   const { pos, rot } = keyPlacement;
   const switch3D = createCherryMX();
 
-  return switch3D
-    .rotate_z(rot)
-    .translate([pos.x, pos.y, plateThickness + wallHeight + 10]);
+  return switch3D.rotate_z(rot).translate([pos.x, pos.y, plateThickness + wallHeight + 10]);
 }
 
 export function createAllSwitchVisualizations(
