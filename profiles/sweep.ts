@@ -1,28 +1,25 @@
 import type { ParameterProfile } from '../src/interfaces.js';
 
+// Sweep-style 17-key split keyboard from KiCad PCB
+// Layout has 5 columns with column stagger and 2 rotated thumb keys
 export const profile: ParameterProfile = {
   output: {
-    showSwitches: true,
+    showSwitches: false,
     showKeycaps: true,
-    keycapProfile: 'dsa',
+    keycapProfile: 'choc',
   },
   layout: {
     mode: 'split',
     matrix: {
       rowLayout: [
-        { start: 0, length: 3, offset: 5, thumbAnchor: 2 },
-        { start: 0, length: 3, offset: 1 },
-        { start: 0, length: 3, offset: 0 },
-        { start: 0, length: 3, offset: 3 },
-        { start: 0, length: 3, offset: 4 },
+        { start: 0, length: 3, offset: 0, thumbAnchor: 1 },
+        { start: 0, length: 3, offset: -3 },
+        { start: 0, length: 3, offset: -8 },
+        { start: 0, length: 3, offset: -1},
+        { start: 0, length: 3, offset: 11 },
       ],
     },
-    edgeMargin: {
-      top: 4,
-      bottom: 6,
-      left: 4,
-      right: 6,
-    },
+    edgeMargin: 4.0,
     baseDegrees: 0.0,
   },
   switch: {
@@ -30,35 +27,37 @@ export const profile: ParameterProfile = {
   },
   thumb: {
     cluster: {
-      keys: 3,
-      spacing: 20.0,
-      rotation: 17.0,
+      keys: 2,
+      rotation:15, 
     },
     offset: {
-      x: 25,
-      y: 2,
+      x: 40,
+      y: 0,
     },
     perKey: {
-      rotations: [-10, 0, +10],
+      rotations: [0, 12],
       offsets: [
-        { x: 2, y: 0 },
         { x: 0, y: 0 },
-        { x: 2, y: 0 },
+        { x: 2, y: -2.5 },
       ],
     },
   },
   enclosure: {
-    cornerRadius: 2,
     plate: {
       topThickness: 1.5,
       bottomThickness: 1.5,
     },
     walls: {
       thickness: 1.5,
-      height: 8.0,
+      height: 9.0,
+    },
+    bottomPattern: {
+      type: 'honeycomb',
+      cellSize: 8,
+      wallThickness: 3.5,
+      margin: 6,
     },
     bottomPadsSockets: [
-      /*
       {
         shape: 'round',
         size: { radius: 5.05 },
@@ -87,20 +86,13 @@ export const profile: ParameterProfile = {
         position: { anchor: 'top-right', offset: { x: 0, y: 0 } },
         reinforcement: { thickness: 1, height: 0.2 },
       },
-      */
     ],
-    bottomPattern: {
-      type: 'honeycomb',
-      cellSize: 14,
-      wallThickness: 4,
-      margin: 5,
-    },
     magsafeRing: {
       clearance: 0.2,
       reinforcement: {
-        outer: 3.0,
-        inner: 3.0,
-        height: 0.8,
+        outer: 2.0,
+        inner: 2.0,
+        height: 0.5,
       },
       position: {
         offset: { x: 0, y: 0 },
@@ -109,17 +101,10 @@ export const profile: ParameterProfile = {
   },
   connectors: [
     {
-      type: 'powerButton',
-      enabled: true,
-      face: 'right',
-      position: 0.20,
-      clearance: 0.2,
-    },
-    {
       type: 'usbC',
       enabled: true,
-      face: 'bottom',
-      position: 0.60,
+      face: 'left',
+      position: 0.5,
       clearance: 0.2,
     },
   ],
