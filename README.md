@@ -121,9 +121,14 @@ bun run list
 Output:
 ```
 Available keyboard profiles:
-  • macropad-3x3: 9 keys {0:3,0:3,0:3} [choc]
-  • split-36: 18 keys {0:3,0:3,0:3,0:3,0:3} + 3 thumbs [choc]
-  • test-single-choc: 1 keys {0:1} [choc]
+  • corne: 23 keys {0:2,0:3,0:3,0:3,0:3,0:3,0:3} + 3 thumbs [mx] (split)
+  • macropad-3x3: 9 keys {0:3,0:3,0:3} [choc] (split)
+  • planck: 24 keys {0:4,0:4,0:4,0:4,0:4,0:4} [mx] (unibody)
+  • split-36: 18 keys {0:3,0:3,0:3,0:3,0:3} + 3 thumbs [choc] (split)
+  • sweep: 17 keys {0:3,0:3,0:3,0:3,0:3} + 2 thumbs [choc] (split)
+  • test-single-choc: 1 keys {0:1} [choc] (split)
+  • test-single-mx: 1 keys {0:1} [mx] (split)
+  • unibody-36: 36 keys {0:3,0:3,0:3,0:3,0:3} + 3 thumbs [choc] (unibody)
 ```
 
 ### 2. Build a keyboard
@@ -400,9 +405,17 @@ output: {
 
 ## Included Profiles
 
-- **split-36** - 36-key split ergonomic keyboard (15 + 3 thumb per hand)
-- **macropad-3x3** - 9-key macropad (3×3 grid)
-- **test-single-choc** - Single key test configuration
+### Complete Keyboards
+- **split-36** - 36-key split ergonomic keyboard (18 + 3 thumb per hand, Choc switches)
+- **unibody-36** - 36-key unibody ergonomic keyboard (all keys in one piece, Choc switches)
+- **planck** - 48-key unibody ortholinear keyboard (4×12 grid, MX switches)
+- **corne** - Popular 42-key split ergonomic keyboard (23 + 3 thumb per hand, MX switches)
+- **sweep** - Minimalist 34-key split keyboard (17 + 2 thumb per hand, Choc switches)
+- **macropad-3x3** - 9-key macropad (3×3 grid, Choc switches)
+
+### Test Profiles
+- **test-single-choc** - Single Choc switch test configuration
+- **test-single-mx** - Single MX switch test configuration
 
 
 ## Design & Print Tips
@@ -410,7 +423,7 @@ output: {
 ### Before Your First Build
 
 **Start with a test print:**
-Print the `test-single-choc` / `test-single-mx` profile first to Verify your printer is properly tuned and check that switches fit snugly in the top plate.
+Print the `test-single-choc` or `test-single-mx` profile first to verify your printer is properly tuned and check that switches fit snugly in the top plate.
 Test the snap-fit mechanism between top and bottom parts Ensure parts snap together securely without excessive force, use a plastic pry tool to reopen the case without damage.
 
 ### Planning Your Layout
