@@ -90,7 +90,7 @@ export function generateBottomCase(plateWidth: number, plateHeight: number, conf
   const socketExclusions = createSocketExclusionZones(plateWidth, plateHeight, config);
 
   const magsafeRingStructure = createMagSafeRingStructure(plateWidth, plateHeight, wallThickness, config);
-  const magsafeRingCutout = createMagSafeRingCutout(plateWidth, plateHeight, wallThickness, config);
+  const magsafeRingCutout = createMagSafeRingCutout(plateWidth, plateHeight, wallThickness, bottomThickness, config);
   const magsafeRingExclusion = createMagSafeRingExclusionZone(plateWidth, plateHeight, wallThickness, config);
 
   const patternCutout = pipe(

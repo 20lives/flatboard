@@ -81,6 +81,7 @@ export interface MagSafeRingSocket {
   };
   position: {
     offset: Point2D; // Offset from center of keyboard
+    placement: 'external' | 'embedded';
   };
 }
 
