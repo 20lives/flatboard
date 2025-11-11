@@ -5,9 +5,9 @@ import type { KeyboardConfig } from './interfaces.js';
 
 // MagSafe ring dimensions (based on standard MagSafe charger)
 const MAGSAFE_RING = {
-  OUTER_DIAMETER: 55,
-  INNER_DIAMETER: 50,
-  DEPTH: 0.5,
+  OUTER_DIAMETER: 56,
+  INNER_DIAMETER: 44,
+  DEPTH: 0.6,
 };
 
 export function createMagSafeRingStructure(
@@ -43,6 +43,7 @@ export function createMagSafeRingCutout(
   plateWidth: number,
   plateHeight: number,
   wallThickness: number,
+  bottomThickness: number,
   config: KeyboardConfig,
 ): ScadObject | null {
   return pipe(
@@ -63,8 +64,14 @@ export function createMagSafeRingCutout(
 
       const ringCutout2D = difference(outerCircle, innerCircle);
 
-      // Extrude with slight extra depth for clean cutout
-      return ringCutout2D.linear_extrude(MAGSAFE_RING.DEPTH + 0.1).translate([centerX, centerY, -0.1]);
+      const placementZOffsets = {
+        external: 0,
+        embedded: 0.3,
+      };
+
+      const zOffset = placementZOffsets[ringConfig.position.placement];
+
+      return ringCutout2D.linear_extrude(MAGSAFE_RING.DEPTH + 0.001).translate([centerX, centerY, zOffset - 0.001]);
     }),
     O.toNullable,
   );

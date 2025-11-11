@@ -104,6 +104,7 @@ export const profile: ParameterProfile = {
       },
       position: {
         offset: { x: 0, y: 0 },
+        placement: 'external' as const,
       },
     },
   },
