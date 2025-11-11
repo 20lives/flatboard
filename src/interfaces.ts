@@ -1,5 +1,11 @@
 export type Point2D = { x: number; y: number };
 export type KeyPlacement = { pos: Point2D; rot: number };
+export type EdgeMargin = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
 
 export interface RowLayoutItem {
   start: number; // Starting grid position for this row
@@ -15,7 +21,7 @@ export interface MatrixConfig {
 
 export interface LayoutConfig {
   matrix: MatrixConfig;
-  edgeMargin: number;
+  edgeMargin: EdgeMargin;
   baseDegrees: number;
   mode: 'split' | 'unibody';
   centerGap?: number;
@@ -170,7 +176,7 @@ export interface ParameterProfile {
     matrix?: {
       rowLayout?: RowLayoutItem[];
     };
-    edgeMargin?: number;
+    edgeMargin?: number | EdgeMargin;
     baseDegrees?: number;
     mode?: 'split' | 'unibody';
     centerGap?: number;
