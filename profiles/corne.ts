@@ -10,55 +10,54 @@ export const profile: ParameterProfile = {
     mode: 'split',
     matrix: {
       rowLayout: [
-        { start: 0, length: 3, offset: 5, thumbAnchor: 2 },
-        { start: 0, length: 3, offset: 1 },
+        { start: 0, length: 2, offset: 5.5, thumbAnchor: 1 },
+        { start: 0, length: 3, offset: -2.382 },
+        { start: 0, length: 3, offset: -4.763 },
+        { start: 0, length: 3, offset: -7.144 },
+        { start: 0, length: 3, offset: -4.763 },
         { start: 0, length: 3, offset: 0 },
-        { start: 0, length: 3, offset: 3 },
-        { start: 0, length: 3, offset: 4 },
+        { start: 0, length: 3, offset: 0 },
       ],
     },
-    edgeMargin: {
-      top: 4,
-      bottom: 6,
-      left: 4,
-      right: 6,
-    },
-    baseDegrees: 0.0,
+    edgeMargin: 3.0,
+    baseDegrees: 0,
   },
   switch: {
-    type: 'choc',
+    type: 'mx',
   },
   thumb: {
     cluster: {
       keys: 3,
-      spacing: 20.0,
-      rotation: 17.0,
     },
     offset: {
-      x: 25,
-      y: 2,
+      x: 26,
+      y: 27,
     },
     perKey: {
-      rotations: [-10, 0, +10],
+      rotations: [0, 11.94, 11.94 + 11.94],
       offsets: [
-        { x: 2, y: 0 },
         { x: 0, y: 0 },
-        { x: 2, y: 0 },
+        { x: 2, y: -1.5 },
+        { x: 4, y: -6 },
       ],
     },
   },
   enclosure: {
-    cornerRadius: 2,
     plate: {
       topThickness: 1.5,
       bottomThickness: 1.5,
     },
     walls: {
       thickness: 1.5,
-      height: 8.0,
+      height: 9.0,
+    },
+    bottomPattern: {
+      type: 'circles',
+      cellSize: 5,
+      wallThickness: 1.5,
+      margin: 3,
     },
     bottomPadsSockets: [
-      /*
       {
         shape: 'round',
         size: { radius: 5.05 },
@@ -87,20 +86,13 @@ export const profile: ParameterProfile = {
         position: { anchor: 'top-right', offset: { x: 0, y: 0 } },
         reinforcement: { thickness: 1, height: 0.2 },
       },
-      */
     ],
-    bottomPattern: {
-      type: 'honeycomb',
-      cellSize: 14,
-      wallThickness: 4,
-      margin: 5,
-    },
     magsafeRing: {
       clearance: 0.2,
       reinforcement: {
-        outer: 3.0,
-        inner: 3.0,
-        height: 0.8,
+        outer: 2.0,
+        inner: 2.0,
+        height: 0.5,
       },
       position: {
         offset: { x: 0, y: 0 },
@@ -109,17 +101,10 @@ export const profile: ParameterProfile = {
   },
   connectors: [
     {
-      type: 'powerButton',
-      enabled: true,
-      face: 'right',
-      position: 0.20,
-      clearance: 0.2,
-    },
-    {
       type: 'usbC',
       enabled: true,
-      face: 'bottom',
-      position: 0.60,
+      face: 'top',
+      position: 0.9,
       clearance: 0.2,
     },
   ],
