@@ -53,6 +53,7 @@ export function generateBottomCase(plateWidth: number, plateHeight: number, conf
   const bottomThickness = config.enclosure.plate.bottomThickness;
   const topWallHeight = config.enclosure.walls.height;
   const plateThickness = config.enclosure.plate.topThickness;
+  const cornerRadius = config.enclosure.cornerRadius ?? 0.5;
   const totalHeight = plateThickness + topWallHeight;
 
   const dimensions = {
@@ -61,9 +62,9 @@ export function generateBottomCase(plateWidth: number, plateHeight: number, conf
   };
 
   const squares = {
-    outer: createRoundedSquare(dimensions.outerWidth, dimensions.outerHeight),
-    base: createRoundedSquare(plateWidth, plateHeight),
-    inner: createRoundedSquare(plateWidth - 2 * wallThickness, plateHeight - 2 * wallThickness),
+    outer: createRoundedSquare(dimensions.outerWidth, dimensions.outerHeight, cornerRadius),
+    base: createRoundedSquare(plateWidth, plateHeight, cornerRadius),
+    inner: createRoundedSquare(plateWidth - 2 * wallThickness, plateHeight - 2 * wallThickness, cornerRadius),
   };
 
   const baseGeometry = union(
