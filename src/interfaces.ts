@@ -94,6 +94,7 @@ export interface EnclosureConfig {
     thickness: number;
     height: number;
   };
+  cornerRadius?: number;
   bottomPadsSockets?: SiliconPadSocket[];
   bottomPattern?: BottomPatternConfig;
   magsafeRing?: MagSafeRingSocket;
@@ -198,6 +199,7 @@ export interface ParameterProfile {
       thickness?: number;
       height?: number;
     };
+    cornerRadius?: number;
     bottomPadsSockets?: SiliconPadSocket[];
     bottomPattern?: BottomPatternConfig;
     magsafeRing?: MagSafeRingSocket;
