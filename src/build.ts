@@ -71,10 +71,9 @@ export function build(generateStlFiles = false, profileName: string, isDevMode =
 
   const outputDir = isDevMode ? './dist' : `./dist/${profileName}-${getTimestampHash()}`;
 
-  if (!isDevMode) {
-    const { mkdirSync } = require('node:fs');
-    mkdirSync(outputDir, { recursive: true });
-  }
+  // Ensure output directory exists
+  const { mkdirSync } = require('node:fs');
+  mkdirSync(outputDir, { recursive: true });
 
   const outputFiles = [
     createOutputFile('top', buildTopPlate(profileName)),
